@@ -28,24 +28,17 @@ button:hover { background:#2968c8; }
 <textarea id="jsonOutput" readonly></textarea>
 
 <script>
-// URL do JSON no GitHub
-const jsonURL = "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/produtos.json";
+let products = [
+    {
+        name: "Pneu Aro 16",
+        price: "R$ 350,00",
+        img: "https://via.placeholder.com/220x180?text=Pneu+Aro+16",
+        description: "Pneu de alta performance para carros de passeio, durabilidade garantida."
+    }
+];
 
-let products = [];
 const output = document.getElementById('jsonOutput');
-
-// Carrega produtos já existentes do GitHub
-fetch(jsonURL)
-  .then(res => res.json())
-  .then(data => {
-      products = data;
-      updateJSON();
-  })
-  .catch(err => {
-      console.warn("Não foi possível carregar produtos do GitHub, começando vazio.", err);
-      products = [];
-      updateJSON();
-  });
+updateJSON();
 
 function addProduct() {
     const name = document.getElementById('name').value;
@@ -57,7 +50,7 @@ function addProduct() {
     if(name && price && description && file){
         const reader = new FileReader();
         reader.onload = function(e){
-            const imgBase64 = e.target.result;
+            const imgBase64 = e.target.result; // imagem em Base64
             products.push({name, price, img: imgBase64, description});
             updateJSON();
             document.getElementById('name').value='';
