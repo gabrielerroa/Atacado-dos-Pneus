@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Atacad�o Pneus</title>
+<title>Admin - Atacadão Pneus</title>
 <style>
 body { font-family: Arial, sans-serif; padding:20px; background:#f5f5f5; }
 h1 { color:#333; }
@@ -15,47 +15,60 @@ button:hover { background:#2968c8; }
 </head>
 <body>
 
-<h1>Admin - Atacad�o Pneus</h1>
+<h1>Admin - Atacadão Pneus</h1>
 
 <h3>Adicionar Produto</h3>
 <input type="text" id="name" placeholder="Nome do Produto">
-<input type="text" id="price" placeholder="Pre�o">
-<input type="text" id="img" placeholder="URL da Imagem">
-<textarea id="description" placeholder="Descri��o"></textarea>
+<input type="text" id="price" placeholder="Preço">
+<input type="file" id="imgFile" accept="image/*">
+<textarea id="description" placeholder="Descrição"></textarea>
 <button onclick="addProduct()">Adicionar Produto</button>
 
 <h3>JSON Atualizado</h3>
 <textarea id="jsonOutput" readonly></textarea>
 
 <script>
-let products = [
-    {
-        name: "Pneu Aro 16",
-        price: "R$ 350,00",
-        img: "https://via.placeholder.com/220x180?text=Pneu+Aro+16",
-        description: "Pneu de alta performance para carros de passeio, durabilidade garantida."
-    }
-];
+// URL do JSON no GitHub
+const jsonURL = "https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/produtos.json";
 
+let products = [];
 const output = document.getElementById('jsonOutput');
-updateJSON();
+
+// Carrega produtos já existentes do GitHub
+fetch(jsonURL)
+  .then(res => res.json())
+  .then(data => {
+      products = data;
+      updateJSON();
+  })
+  .catch(err => {
+      console.warn("Não foi possível carregar produtos do GitHub, começando vazio.", err);
+      products = [];
+      updateJSON();
+  });
 
 function addProduct() {
     const name = document.getElementById('name').value;
     const price = document.getElementById('price').value;
-    const img = document.getElementById('img').value;
     const description = document.getElementById('description').value;
+    const fileInput = document.getElementById('imgFile');
+    const file = fileInput.files[0];
 
-    if(name && price && img && description){
-        products.push({name, price, img, description});
-        updateJSON();
-        document.getElementById('name').value='';
-        document.getElementById('price').value='';
-        document.getElementById('img').value='';
-        document.getElementById('description').value='';
-        alert("Produto adicionado! Copie o JSON abaixo e cole no GitHub.");
-    }else{
-        alert("Preencha todos os campos!");
+    if(name && price && description && file){
+        const reader = new FileReader();
+        reader.onload = function(e){
+            const imgBase64 = e.target.result;
+            products.push({name, price, img: imgBase64, description});
+            updateJSON();
+            document.getElementById('name').value='';
+            document.getElementById('price').value='';
+            document.getElementById('description').value='';
+            fileInput.value = '';
+            alert("Produto adicionado! Copie o JSON abaixo e cole no GitHub.");
+        }
+        reader.readAsDataURL(file);
+    } else {
+        alert("Preencha todos os campos e selecione uma imagem!");
     }
 }
 
