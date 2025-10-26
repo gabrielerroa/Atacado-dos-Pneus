@@ -59,8 +59,8 @@ const productList = document.getElementById('productList');
 // 🔄 Carrega vários JSONs diretamente, sem lista.json
 function fetchProducts() {
     Promise.all([
-        fetch(baseURL + "produtos.json").then(r => r.json()),
-        fetch(baseURL + "produto2.json").then(r => r.json()),
+        fetch(baseURL + "produtos.JSON").then(r => r.json()),
+        fetch(baseURL + "oitos.JSON").then(r => r.json()),
         fetch(baseURL + "produto3.json").then(r => r.json())
         // 🔹 Adicione mais JSONs aqui
     ])
