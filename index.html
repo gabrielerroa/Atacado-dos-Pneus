@@ -50,24 +50,44 @@ button.store-btn:hover { opacity:0.9; }
 <div class="products" id="productList"></div>
 
 <script>
-// URL do JSON hospedado no GitHub Pages
-const jsonURL = "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos.JSON"; // Substitua
-
 let products = [];
 const productList = document.getElementById('productList');
 
-// --- Função para carregar produtos ---
-function fetchProducts(callback) {
-    fetch(jsonURL)
-        .then(res => res.json())
-        .then(data => { 
-            products = data; 
-            if(callback) callback(); 
+// Função para carregar lista de arquivos JSON e buscar dados
+function fetchAllProducts(callback) {
+    fetch('jsonList.json')  // Lista de arquivos JSON
+        .then(res => {
+            if(!res.ok) throw new Error('Erro ao carregar jsonList.json');
+            return res.json();
         })
-        .catch(err => console.error("Erro ao carregar produtos:", err));
+        .then(files => {
+            let allProducts = [];
+            let filesLoaded = 0;
+
+            files.forEach(file => {
+                fetch(file)
+                    .then(res => {
+                        if(!res.ok) throw new Error(Erro ao carregar ${file});
+                        return res.json();
+                    })
+                    .then(data => {
+                        allProducts = allProducts.concat(data);
+                        filesLoaded++;
+                        if(filesLoaded === files.length){
+                            products = allProducts;
+                            if(callback) callback();
+                        }
+                    })
+                    .catch(err => console.error(err));
+            });
+
+            // Caso não tenha arquivos na lista, executa callback logo
+            if(files.length === 0 && callback) callback();
+        })
+        .catch(err => console.error(err));
 }
 
-// --- Função para exibir produtos ---
+// Função para mostrar produtos na página
 function displayProducts(items) {
     productList.style.display = 'flex';
     productList.innerHTML = '';
@@ -84,14 +104,13 @@ function displayProducts(items) {
     });
 }
 
-// --- Função de pesquisa ---
+// Função de busca
 function searchProducts() {
-    // Se produtos ainda não carregaram, carrega antes de filtrar
     if(products.length === 0){
-        fetchProducts(() => {
+        fetchAllProducts(() => {
             filterAndDisplay();
         });
-    } else {
+    }else{
         filterAndDisplay();
     }
 
@@ -103,24 +122,22 @@ function searchProducts() {
     }
 }
 
-// --- Abrir detalhes do produto ---
+// Abrir detalhes do produto
 function viewProduct(product) {
     localStorage.setItem('selectedProduct', JSON.stringify(product));
     window.open('product.html', '_blank');
 }
 
-// --- Mostrar loja ---
+// Mostrar loja completa
 function showStore() {
     document.getElementById('intro').style.display = 'none';
     if(products.length === 0){
-        fetchProducts(() => displayProducts(products));
-    } else {
+        fetchAllProducts(() => displayProducts(products));
+    }else{
         displayProducts(products);
     }
 }
 
-// --- Carrega produtos automaticamente ao abrir a página (opcional) ---
-// fetchProducts(); 
 </script>
 
 </body>
