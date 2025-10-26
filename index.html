@@ -55,7 +55,7 @@ const productList = document.getElementById('productList');
 
 // Função para carregar lista de arquivos JSON e buscar dados
 function fetchAllProducts(callback) {
-    fetch('jsonList.json')  // Lista de arquivos JSON
+    fetch('jsonList.JSON')  // Lista de arquivos JSON
         .then(res => {
             if(!res.ok) throw new Error('Erro ao carregar jsonList.json');
             return res.json();
