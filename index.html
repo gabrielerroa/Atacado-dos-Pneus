@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="pt-br">
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,39 +42,77 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
     <p>Use o botão acima para entrar na loja ou pesquise produtos abaixo.</p>
 </div>
 <div class="products" id="productList"></div>
+
 <script>
-const jsonURL = "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos.JSON";
+const jsonURLs = [
+    "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos.json",
+    "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos1.json"
+];
+
 let products = [];
-const productList = document.getElementById('productList');function fetchProducts(callback) { fetch(jsonURL) .then(res => res.json()) .then(data => { products = data; if(callback) callback(); }) .catch(err => console.error("Erro ao carregar produtos:", err)); }
+const productList = document.getElementById('productList');
 
-function displayProducts(items) { productList.style.display = 'flex'; productList.innerHTML = '';
+function fetchProducts(callback) {
+    const fetches = jsonURLs.map(url => 
+        fetch(url)
+        .then(res => res.json())
+        .catch(err => {
+            console.error("Erro ao carregar:", url, err);
+            return [];
+        })
+    );
 
-items.forEach(p => {
-    productList.innerHTML += `
-    <div class="product">
-        <img src="${p.img}" alt="${p.name}">
-        <h3>${p.name}</h3>
-        <p>${p.price}</p>
-        <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
-    </div>`;
-});
-
+    Promise.all(fetches).then(results => {
+        // Junta todos os produtos dos dois JSONs
+        products = results.flat();
+        if (callback) callback();
+    });
 }
 
-function searchProducts() { if(products.length === 0){ fetchProducts(filterAndDisplay); } else { filterAndDisplay(); }
+function displayProducts(items) {
+    productList.style.display = 'flex';
+    productList.innerHTML = '';
 
-function filterAndDisplay(){
-    const query = document.getElementById('search').value.toLowerCase();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(query));
-    displayProducts(filtered);
+    items.forEach(p => {
+        productList.innerHTML += `
+        <div class="product">
+            <img src="${p.img}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p>${p.price}</p>
+            <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
+        </div>`;
+    });
+}
+
+function searchProducts() {
+    if (products.length === 0) {
+        fetchProducts(filterAndDisplay);
+    } else {
+        filterAndDisplay();
+    }
+
+    function filterAndDisplay(){
+        const query = document.getElementById('search').value.toLowerCase();
+        const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+        displayProducts(filtered);
+        document.getElementById('intro').style.display = 'none';
+    }
+}
+
+function viewProduct(product) {
+    localStorage.setItem('selectedProduct', JSON.stringify(product));
+    window.open('product.html', '_blank');
+}
+
+function showStore() {
     document.getElementById('intro').style.display = 'none';
+    if (products.length === 0) {
+        fetchProducts(() => displayProducts(products));
+    } else {
+        displayProducts(products);
+    }
 }
-
-}
-
-function viewProduct(product) { localStorage.setItem('selectedProduct', JSON.stringify(product)); window.open('product.html', '_blank'); }
-
-function showStore() { document.getElementById('intro').style.display = 'none'; if(products.length === 0){ fetchProducts(() => displayProducts(products)); } else { displayProducts(products); } } </script>
+</script>
 
 </body>
 </html>
