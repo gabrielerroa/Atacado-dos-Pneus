@@ -51,10 +51,12 @@ button.store-btn:hover { opacity:0.9; }
 
 <script>
 // URL do JSON hospedado no GitHub Pages
-const jsonFile = "produtos.JSON"
+const jsonURL = "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos.JSON";
+
+const jsonURL = "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos.JSON";
+    
 let products = [];
 const productList = document.getElementById('productList');
-
 // --- Função para carregar produtos ---
 function fetchProducts(callback) {
     fetch(jsonURL)
