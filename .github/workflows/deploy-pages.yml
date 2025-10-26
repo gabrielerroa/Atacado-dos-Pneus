@@ -1,0 +1,40 @@
+name: Gerar manifest JSON de arquivos
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  gerar_manifest:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Fazer checkout do repositório
+      uses: actions/checkout@v3
+
+    - name: Listar JSONs e gerar manifest
+      run: |
+        # Listar arquivos JSON na pasta 'json' (ajuste a pasta conforme seu projeto)
+        FILES=$(ls json/*.json)
+        echo '[' > manifest.json
+        FIRST=true
+        for f in $FILES; do
+          if [ "$FIRST" = true ]; then
+            FIRST=false
+          else
+            echo ',' >> manifest.json
+          fi
+          # Extrair só o nome do arquivo
+          BASENAME=$(basename $f)
+          echo "  "$BASENAME"" >> manifest.json
+        done
+        echo ']' >> manifest.json
+
+    - name: Commit e push do manifest.json
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add manifest.json
+        git commit -m "Atualiza manifest.json automaticamente"
+        git push
