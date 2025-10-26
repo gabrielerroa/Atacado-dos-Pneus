@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Atacadão Pneus</title>
 <style>
 body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
@@ -35,7 +35,7 @@ button.store-btn:hover { opacity:0.9; }
 <header>
     <h1>Atacadão Pneus</h1>
     <div class="header-right">
-        <input type="text" id="search" placeholder="Buscar produtos...">
+        <input type="text" id="search" placeholder="Buscar produtos..." />
         <button class="search-btn" onclick="searchProducts()">Pesquisar</button>
         <button class="store-btn" onclick="showStore()">Entrar na Loja</button>
     </div>
@@ -53,41 +53,42 @@ button.store-btn:hover { opacity:0.9; }
 let products = [];
 const productList = document.getElementById('productList');
 
-// Função para carregar lista de arquivos JSON e buscar dados
 function fetchAllProducts(callback) {
-    fetch('jsonList.JSON')  // Lista de arquivos JSON
+    fetch('jsonList.json')
         .then(res => {
-            if(!res.ok) throw new Error('Erro ao carregar jsonList.json');
+            if (!res.ok) throw new Error('Erro ao carregar jsonList.json');
             return res.json();
         })
         .then(files => {
             let allProducts = [];
             let filesLoaded = 0;
 
+            if(files.length === 0) {
+                products = [];
+                if(callback) callback();
+                return;
+            }
+
             files.forEach(file => {
                 fetch(file)
                     .then(res => {
-                        if(!res.ok) throw new Error(Erro ao carregar ${file});
+                        if (!res.ok) throw new Error(Erro ao carregar ${file});
                         return res.json();
                     })
                     .then(data => {
                         allProducts = allProducts.concat(data);
                         filesLoaded++;
-                        if(filesLoaded === files.length){
+                        if (filesLoaded === files.length) {
                             products = allProducts;
                             if(callback) callback();
                         }
                     })
                     .catch(err => console.error(err));
             });
-
-            // Caso não tenha arquivos na lista, executa callback logo
-            if(files.length === 0 && callback) callback();
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error('Erro ao carregar jsonList.json', err));
 }
 
-// Função para mostrar produtos na página
 function displayProducts(items) {
     productList.style.display = 'flex';
     productList.innerHTML = '';
@@ -95,7 +96,7 @@ function displayProducts(items) {
         const productStr = JSON.stringify(p).replace(/"/g, '&quot;');
         productList.innerHTML += `
             <div class="product">
-                <img src="${p.img}" alt="${p.name}">
+                <img src="${p.img}" alt="${p.name}" />
                 <h3>${p.name}</h3>
                 <p>${p.price}</p>
                 <button onclick='viewProduct(JSON.parse("${productStr}"))'>Comprar</button>
@@ -104,17 +105,16 @@ function displayProducts(items) {
     });
 }
 
-// Função de busca
 function searchProducts() {
-    if(products.length === 0){
+    if (products.length === 0) {
         fetchAllProducts(() => {
             filterAndDisplay();
         });
-    }else{
+    } else {
         filterAndDisplay();
     }
 
-    function filterAndDisplay(){
+    function filterAndDisplay() {
         const query = document.getElementById('search').value.toLowerCase();
         const filtered = products.filter(p => p.name.toLowerCase().includes(query));
         displayProducts(filtered);
@@ -122,22 +122,19 @@ function searchProducts() {
     }
 }
 
-// Abrir detalhes do produto
 function viewProduct(product) {
     localStorage.setItem('selectedProduct', JSON.stringify(product));
     window.open('product.html', '_blank');
 }
 
-// Mostrar loja completa
 function showStore() {
     document.getElementById('intro').style.display = 'none';
     if(products.length === 0){
         fetchAllProducts(() => displayProducts(products));
-    }else{
+    } else {
         displayProducts(products);
     }
 }
-
 </script>
 
 </body>
