@@ -60,8 +60,7 @@ const productList = document.getElementById('productList');
 function fetchProducts() {
     Promise.all([
         fetch(baseURL + "produtos.JSON").then(r => r.json()),
-        fetch(baseURL + "oitos.JSON").then(r => r.json()),
-        fetch(baseURL + "produto3.json").then(r => r.json())
+        fetch(baseURL + "oitos.JSON").then(r => r.json())
         // 🔹 Adicione mais JSONs aqui
     ])
     .then(todos => {
