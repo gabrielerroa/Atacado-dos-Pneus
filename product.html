@@ -11,7 +11,30 @@ img { width:100%; height:auto; border-radius:10px; }
 h2 { margin-top:10px; color:#333; }
 p { color:#555; margin:5px 0; }
 .info { font-weight:bold; margin-top:5px; }
-ul { margin-top:10px; padding-left:20px; color:#444; }
+
+.choice-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.choice-btn {
+    padding:10px 20px;
+    border:2px solid #25D366;
+    border-radius:8px;
+    background:#fff;
+    color:#25D366;
+    font-weight:bold;
+    cursor:pointer;
+    transition:all 0.3s ease;
+}
+
+.choice-btn.active {
+    background:#25D366;
+    color:#fff;
+}
+
 button.whatsapp {
     padding:10px 20px;
     font-size:16px;
@@ -37,68 +60,79 @@ button.whatsapp:hover { background:#1ebe5b; }
 const productContainer = document.getElementById('productContainer');
 const product = JSON.parse(localStorage.getItem('selectedProduct'));
 
-// Dados de exemplo se o localStorage estiver vazio
+// Exemplo de dados para teste local (caso o localStorage esteja vazio)
 if(!product){
     localStorage.setItem('selectedProduct', JSON.stringify({
         name: "Produto Exemplo",
         img: "https://via.placeholder.com/400x300",
-        price: "R$ 100,00",
-        description: "Produto em ótimo estado.",
-        condicao: "Meia vida",
-        options: [
-            { nome: "Pneu dianteiro", quantidade: 4 },
-            { nome: "Pneu traseiro", quantidade: 2 }
-        ]
+        precoVarejo: "R$ 100,00",
+        precoAtacado: "R$ 85,00",
+        description: "Produto usado em ótimo estado, ideal para revenda."
     }));
     location.reload();
 }
 
 if(product){
     const phoneNumber = "556193995989";
-    const condicaoFixa = "Meia vida";
+    let selectedMode = "Varejo"; // modo inicial
+    let currentPrice = product.precoVarejo || product.price || "—";
+    const condicaoFixa = "Meia vida"; // condição sempre fixa
 
-    // Cria a lista de opções, se existirem
-    let optionsListHTML = "";
-    if(product.options && product.options.length > 0){
-        optionsListHTML = `
-            <ul>
-                ${product.options.map(opt => `<li>${opt.nome} — ${opt.quantidade} un.</li>`).join('')}
-            </ul>
-        `;
+    // Gera o link do WhatsApp com os dados e condição fixa
+    function updateWhatsAppLink(){
+        const details = [
+            `Produto: ${product.name}`,
+            `Preço (${selectedMode}): ${currentPrice}`,
+            `Condição: ${condicaoFixa}`,
+            `Modo de compra: ${selectedMode}`
+        ].join(' | ');
+
+        const encodedMessage = encodeURIComponent(
+            `Olá! Tenho interesse neste produto (${selectedMode}): ${details}. Poderia me dar mais informações?`
+        );
+        return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     }
 
-    // Monta o HTML do produto
+    // Cria o layout do produto
     productContainer.innerHTML = `
         <img src="${product.img}" alt="${product.name}">
         <h2>${product.name}</h2>
-        <p class="info">Preço: ${product.price || "—"}</p>
+        <p class="info" id="priceText">Preço: ${currentPrice}</p>
         <p class="info">Condição: ${condicaoFixa}</p>
         ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
-        ${optionsListHTML}
-        <button class="whatsapp" id="whatsappBtn">💬 Falar no WhatsApp</button>
+
+        <div class="choice-container">
+            <button class="choice-btn active" id="varejoBtn">Varejo</button>
+            <button class="choice-btn" id="atacadoBtn">Atacado</button>
+        </div>
+
+        <button class="whatsapp" id="whatsappBtn">
+            💬 Falar no WhatsApp
+        </button>
     `;
 
-    // Gera a mensagem de WhatsApp
-    function generateWhatsAppMessage(){
-        let optionsText = "";
-        if(product.options && product.options.length > 0){
-            optionsText = product.options.map(opt => `${opt.nome}: ${opt.quantidade} un.`).join(", ");
-        }
-        return `Olá! Tenho interesse neste produto:\n` +
-               `Produto: ${product.name}\n` +
-               `Preço: ${product.price || "—"}\n` +
-               `Condição: ${condicaoFixa}\n` +
-               (optionsText ? `Opções: ${optionsText}\n` : "") +
-               (product.description ? `Descrição: ${product.description}` : "");
+    // Seleciona os botões
+    const varejoBtn = document.getElementById('varejoBtn');
+    const atacadoBtn = document.getElementById('atacadoBtn');
+    const whatsappBtn = document.getElementById('whatsappBtn');
+    const priceText = document.getElementById('priceText');
+
+    // Alterna entre Varejo e Atacado
+    function updateSelection(mode){
+        selectedMode = mode;
+        varejoBtn.classList.toggle('active', mode === "Varejo");
+        atacadoBtn.classList.toggle('active', mode === "Atacado");
+        currentPrice = (mode === "Varejo" ? product.precoVarejo : product.precoAtacado) || product.price || "—";
+        priceText.textContent = `Preço: ${currentPrice}`;
     }
 
-    // Abre WhatsApp com mensagem
-    document.getElementById('whatsappBtn').addEventListener('click', ()=>{
-        const message = encodeURIComponent(generateWhatsAppMessage());
-        const link = `https://wa.me/${phoneNumber}?text=${message}`;
-        window.open(link, '_blank');
-    });
+    varejoBtn.addEventListener('click', ()=> updateSelection("Varejo"));
+    atacadoBtn.addEventListener('click', ()=> updateSelection("Atacado"));
 
+    // Abre o WhatsApp com a mensagem personalizada
+    whatsappBtn.addEventListener('click', ()=>{
+        window.open(updateWhatsAppLink(), '_blank');
+    });
 }else{
     productContainer.innerHTML = "<p>Nenhum produto selecionado.</p>";
 }
