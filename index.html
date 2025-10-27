@@ -89,7 +89,7 @@ const productList = document.getElementById('productList');
 // Loader (efeito de carregamento)
 const loader = document.createElement("div");
 loader.style = "display:flex;justify-content:center;align-items:center;width:100%;height:200px;";
-loader.innerHTML = <div class="spinner"></div>;
+loader.innerHTML = `<div class="spinner"></div>`;
 
 function showLoader() {
     productList.style.display = 'flex';
@@ -126,8 +126,8 @@ function displayProducts(items) {
         return;
     }
     items.forEach(p => {
-        const tipo = p.tipo ? <p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p> : '';
-        const condicao = p.condicao ? <p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p> : '';
+        const tipo = p.tipo ? `<p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p>` : '';
+        const condicao = p.condicao ? `<p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p>` : '';
         const inmetro = p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : '';
         productList.innerHTML += `
         <div class="product">
