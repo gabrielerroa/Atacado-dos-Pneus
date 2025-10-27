@@ -10,8 +10,7 @@ body { font-family: Arial, sans-serif; padding:20px; background:#f5f5f5; }
 img { width:100%; height:auto; border-radius:10px; }
 h2 { margin-top:10px; color:#333; }
 p { color:#555; margin:5px 0; }
-.label { font-weight:bold; color:#333; }
-.inmetro { margin-top:5px; color:#007700; font-weight:bold; font-size:14px; }
+.info { font-weight:bold; margin-top:5px; }
 button {
     padding:10px 20px;
     font-size:16px;
@@ -38,25 +37,29 @@ const productContainer = document.getElementById('productContainer');
 const product = JSON.parse(localStorage.getItem('selectedProduct'));
 
 if(product){
-    
     const phoneNumber = "+55 61 9399-5989";
-    const message = `Olá! Tenho interesse no produto ${product.name} (${product.price}). Poderia me dar mais informações?`;
-    const encodedMessage = encodeURIComponent(message);
+
+    // Criando a mensagem completa com todos os detalhes
+    const details = [
+        `Produto: ${product.name}`,
+        `Preço: ${product.price}`,
+        product.tipo ? `Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}` : '',
+        product.condicao ? `Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}` : '',
+        product.inmetro ? `Selo Inmetro: Sim` : 'Selo Inmetro: Não'
+    ].filter(Boolean).join(' | ');
+
+    const encodedMessage = encodeURIComponent(`Olá! Tenho interesse neste produto: ${details}. Poderia me dar mais informações?`);
     const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
-    // Adiciona informações extras
-    const tipo = product.tipo ? `<p><span class="label">Tipo:</span> ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}</p>` : '';
-    const condicao = product.condicao ? `<p><span class="label">Condição:</span> ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}</p>` : '';
-    const inmetro = product.inmetro ? `<p class="inmetro">Selo Inmetro</p>` : '';
-
+    // Exibindo na página
     productContainer.innerHTML = `
         <img src="${product.img}" alt="${product.name}">
         <h2>${product.name}</h2>
-        <p><strong>Preço:</strong> ${product.price}</p>
-        ${tipo}
-        ${condicao}
-        ${inmetro}
-        <p><strong>Descrição:</strong> ${product.description || 'Não disponível'}</p>
+        <p class="info">Preço: ${product.price}</p>
+        ${product.tipo ? `<p class="info">Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}</p>` : ''}
+        ${product.condicao ? `<p class="info">Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}</p>` : ''}
+        <p class="info">Selo Inmetro: ${product.inmetro ? 'Sim' : 'Não'}</p>
+        ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
         <button onclick="window.open('${whatsappLink}', '_blank')">
             💬 Falar no WhatsApp
         </button>
