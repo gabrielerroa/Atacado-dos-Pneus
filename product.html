@@ -68,7 +68,8 @@ if(product){
         const details = [
             `Produto: ${product.name}`,
             `Preço: ${product.price}`,
-            <p class="info">condição; meia vida </p>
+            product.tipo ? `Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}` : '',
+            product.condicao ? `Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}` : '',
             `Modo de compra: ${selectedMode}`
         ].filter(Boolean).join(' | ');
 
@@ -76,7 +77,7 @@ if(product){
         return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     }
 
-    productContainer.innerHTML = `
+   productContainer.innerHTML = `
         <img src="${product.img}" alt="${product.name}">
         <h2>${product.name}</h2>
         <p class="info">Preço: ${product.price}</p>
@@ -116,4 +117,3 @@ if(product){
 
 </body>
 </html>
-
