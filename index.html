@@ -6,7 +6,7 @@
 <title>Atacadão Pneus</title>
 <style>
 body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
-header { background:#ffd700; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
+header { background:#ffd700; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
 header h1 { margin:0; font-size:24px; color:#333; }
 .header-right { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
 .header-right input[type="text"] { padding:10px; font-size:16px; border-radius:5px; border:1px solid #ccc; width:200px; }
@@ -14,6 +14,8 @@ header h1 { margin:0; font-size:24px; color:#333; }
 button.search-btn { background:#00a650; }
 button.store-btn { background:#3483fa; }
 button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
+.filter-container { margin:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+.filter-container select, .filter-container input[type="checkbox"] { padding:8px; font-size:14px; border-radius:5px; border:1px solid #ccc; }
 .intro { padding:50px; text-align:center; }
 .intro h2 { font-size:28px; margin-bottom:20px; }
 .intro p { font-size:18px; color:#555; margin-bottom:20px; }
@@ -25,6 +27,7 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
 .product p { color:#555; margin:5px 0; font-weight:bold; }
 .product button { margin:10px; padding:10px; font-size:16px; border:none; border-radius:5px; color:#333; cursor:pointer; transition:0.2s; background:#ffcc00; font-weight:bold; }
 .product button:hover { background:#e6b800; }
+.inmetro { margin-top:5px; color:#007700; font-weight:bold; font-size:12px; }
 </style>
 </head>
 <body>
@@ -36,11 +39,28 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
         <button class="store-btn" onclick="showStore()">Entrar na Loja</button>
     </div>
 </header>
+
+<div class="filter-container" id="filters" style="display:none;">
+    <select id="tipoFilter">
+        <option value="">Todos os tipos</option>
+        <option value="varejo">Varejo</option>
+        <option value="atacado">Atacado</option>
+    </select>
+    <select id="condicaoFilter">
+        <option value="">Todos</option>
+        <option value="novo">Novo</option>
+        <option value="velho">Velho</option>
+    </select>
+    <label><input type="checkbox" id="inmetroFilter"> Apenas com selo Inmetro</label>
+    <button onclick="applyFilters()">Aplicar Filtros</button>
+</div>
+
 <div class="intro" id="intro">
     <h2>Bem-vindo ao Atacadão Pneus!</h2>
     <p>Confira nossos pneus de qualidade, adicione produtos e compre facilmente.</p>
     <p>Use o botão acima para entrar na loja ou pesquise produtos abaixo.</p>
 </div>
+
 <div class="products" id="productList"></div>
 
 <script>
@@ -48,7 +68,6 @@ const jsonURLs = [
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos.JSON",
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/Sport.JSON",
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/PNEU.JSON"
-
 ];
 
 let products = [];
@@ -65,8 +84,8 @@ function fetchProducts(callback) {
     );
 
     Promise.all(fetches).then(results => {
-        // Junta todos os produtos dos dois JSONs
         products = results.flat();
+        document.getElementById('filters').style.display = 'flex';
         if (callback) callback();
     });
 }
@@ -75,12 +94,18 @@ function displayProducts(items) {
     productList.style.display = 'flex';
     productList.innerHTML = '';
 
+    if(items.length === 0){
+        productList.innerHTML = "<p style='width:100%; text-align:center; color:#555;'>Nenhum produto encontrado.</p>";
+        return;
+    }
+
     items.forEach(p => {
         productList.innerHTML += `
         <div class="product">
             <img src="${p.img}" alt="${p.name}">
             <h3>${p.name}</h3>
             <p>${p.price}</p>
+            ${p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : ''}
             <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
         </div>`;
     });
@@ -94,10 +119,8 @@ function searchProducts() {
     }
 
     function filterAndDisplay(){
-        const query = document.getElementById('search').value.toLowerCase();
-        const filtered = products.filter(p => p.name.toLowerCase().includes(query));
-        displayProducts(filtered);
         document.getElementById('intro').style.display = 'none';
+        applyFilters();
     }
 }
 
@@ -113,6 +136,25 @@ function showStore() {
     } else {
         displayProducts(products);
     }
+    document.getElementById('filters').style.display = 'flex';
+}
+
+function applyFilters() {
+    const tipo = document.getElementById('tipoFilter').value;
+    const condicao = document.getElementById('condicaoFilter').value;
+    const inmetroChecked = document.getElementById('inmetroFilter').checked;
+    const query = document.getElementById('search').value.toLowerCase();
+
+    let filtered = products.filter(p => {
+        let match = true;
+        if(tipo) match = match && p.tipo && p.tipo.toLowerCase() === tipo;
+        if(condicao) match = match && p.condicao && p.condicao.toLowerCase() === condicao;
+        if(inmetroChecked) match = match && p.inmetro === true;
+        if(query) match = match && p.name.toLowerCase().includes(query);
+        return match;
+    });
+
+    displayProducts(filtered);
 }
 </script>
 
