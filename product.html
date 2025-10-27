@@ -68,7 +68,7 @@ if(product){
         const details = [
             `Produto: ${product.name}`,
             `Preço: ${product.price}`,
-            product.condicao ? `Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}` : '',
+            <p class="info">condição; meia vida </p>
             `Modo de compra: ${selectedMode}`
         ].filter(Boolean).join(' | ');
 
