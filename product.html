@@ -11,7 +11,31 @@ img { width:100%; height:auto; border-radius:10px; }
 h2 { margin-top:10px; color:#333; }
 p { color:#555; margin:5px 0; }
 .info { font-weight:bold; margin-top:5px; }
-button {
+
+.choice-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.choice-btn {
+    padding:10px 20px;
+    border:2px solid #25D366;
+    border-radius:8px;
+    background:#fff;
+    color:#25D366;
+    font-weight:bold;
+    cursor:pointer;
+    transition:all 0.3s ease;
+}
+
+.choice-btn.active {
+    background:#25D366;
+    color:#fff;
+}
+
+button.whatsapp {
     padding:10px 20px;
     font-size:16px;
     border:none;
@@ -25,7 +49,7 @@ button {
     justify-content:center;
     gap:8px;
 }
-button:hover { background:#1ebe5b; }
+button.whatsapp:hover { background:#1ebe5b; }
 </style>
 </head>
 <body>
@@ -37,21 +61,23 @@ const productContainer = document.getElementById('productContainer');
 const product = JSON.parse(localStorage.getItem('selectedProduct'));
 
 if(product){
-    const phoneNumber = "+55 61 9399-5989";
+    const phoneNumber = "+556193995989"; // corrigido formato
+    let selectedMode = "Varejo"; // padrão inicial
 
-    // Criando a mensagem completa com todos os detalhes
-    const details = [
-        `Produto: ${product.name}`,
-        `Preço: ${product.price}`,
-        product.tipo ? `Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}` : '',
-        product.condicao ? `Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}` : '',
-        product.inmetro ? `Selo Inmetro: Sim` : 'Selo Inmetro: Não'
-    ].filter(Boolean).join(' | ');
+    function updateWhatsAppLink(){
+        const details = [
+            `Produto: ${product.name}`,
+            `Preço: ${product.price}`,
+            product.tipo ? `Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}` : '',
+            product.condicao ? `Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}` : '',
+            product.inmetro ? `Selo Inmetro: Sim` : 'Selo Inmetro: Não',
+            `Modo de compra: ${selectedMode}`
+        ].filter(Boolean).join(' | ');
 
-    const encodedMessage = encodeURIComponent(`Olá! Tenho interesse neste produto: ${details}. Poderia me dar mais informações?`);
-    const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+        const encodedMessage = encodeURIComponent(`Olá! Tenho interesse neste produto (${selectedMode}): ${details}. Poderia me dar mais informações?`);
+        return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    }
 
-    // Exibindo na página
     productContainer.innerHTML = `
         <img src="${product.img}" alt="${product.name}">
         <h2>${product.name}</h2>
@@ -60,15 +86,33 @@ if(product){
         ${product.condicao ? `<p class="info">Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}</p>` : ''}
         <p class="info">Selo Inmetro: ${product.inmetro ? 'Sim' : 'Não'}</p>
         ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
-        <button onclick="window.open('${whatsappLink}', '_blank')">
+
+        <div class="choice-container">
+            <button class="choice-btn active" id="varejoBtn">Varejo</button>
+            <button class="choice-btn" id="atacadoBtn">Atacado</button>
+        </div>
+
+        <button class="whatsapp" id="whatsappBtn">
             💬 Falar no WhatsApp
         </button>
-         <label>Tipo de compra</label>
-    <div class="select-group" id="tipoCompra">
-      <div class="option-btn" data-value="Varejo">Varejo</div>
-      <div class="option-btn" data-value="Atacado">Atacado</div>
-    </div>
     `;
+
+    const varejoBtn = document.getElementById('varejoBtn');
+    const atacadoBtn = document.getElementById('atacadoBtn');
+    const whatsappBtn = document.getElementById('whatsappBtn');
+
+    function updateSelection(mode){
+        selectedMode = mode;
+        varejoBtn.classList.toggle('active', mode === "Varejo");
+        atacadoBtn.classList.toggle('active', mode === "Atacado");
+    }
+
+    varejoBtn.addEventListener('click', ()=> updateSelection("Varejo"));
+    atacadoBtn.addEventListener('click', ()=> updateSelection("Atacado"));
+
+    whatsappBtn.addEventListener('click', ()=>{
+        window.open(updateWhatsAppLink(), '_blank');
+    });
 }else{
     productContainer.innerHTML = "<p>Nenhum produto selecionado.</p>";
 }
