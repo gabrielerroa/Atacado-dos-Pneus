@@ -68,11 +68,9 @@ if(product){
         const details = [
             `Produto: ${product.name}`,
             `Preço: ${product.price}`,
-            <p>
-            condição:meia vida
-</p>
-            product.tipo ? `Tipo: ${product.tipo          
-
+            product.tipo ? `Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}` : '',
+            product.condicao ? `Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}` : '',
+            product.inmetro ? `Selo Inmetro: Sim` : 'Selo Inmetro: Não',
             `Modo de compra: ${selectedMode}`
         ].filter(Boolean).join(' | ');
 
@@ -85,7 +83,7 @@ if(product){
         <h2>${product.name}</h2>
         <p class="info">Preço: ${product.price}</p>
         ${product.tipo ? `<p class="info">Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}</p>` : ''}
-        ${product.condicao ? `<p class="info">Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}</p>` : ''}
+       <p class="info">Condição:meia vida</p>` : ''}
         ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
 
         <div class="choice-container">
