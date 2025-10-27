@@ -57,6 +57,8 @@
   <hr>
 
   <button onclick="generateJSON()">Gerar JSON</button>
+  <button onclick="copyJSON()">Copiar JSON</button>
+  <button onclick="downloadJSON()">Baixar JSON</button>
 
   <pre id="output"></pre>
 </div>
@@ -111,15 +113,28 @@ function generateJSON() {
     options.push({ nome, quantidade, total });
   });
 
-  const json = {
-    name,
-    description,
-    condicao,
-    options,
-    img
-  };
-
+  const json = { name, description, condicao, options, img };
   document.getElementById("output").textContent = JSON.stringify(json, null, 2);
+}
+
+function copyJSON() {
+  const output = document.getElementById("output").textContent;
+  if (!output) return alert("Gere o JSON primeiro!");
+  navigator.clipboard.writeText(output)
+    .then(() => alert("JSON copiado para a área de transferência!"))
+    .catch(() => alert("Erro ao copiar JSON."));
+}
+
+function downloadJSON() {
+  const output = document.getElementById("output").textContent;
+  if (!output) return alert("Gere o JSON primeiro!");
+  const blob = new Blob([output], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "produto.json";
+  a.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 
