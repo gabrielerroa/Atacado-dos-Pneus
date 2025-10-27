@@ -3,109 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Produto</title>
+<title>Atacadão Pneus</title>
 <style>
-body { font-family: Arial, sans-serif; padding:20px; background:#f5f5f5; }
-.container { max-width:500px; margin:0 auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
-img { width:100%; height:auto; border-radius:10px; }
-h2 { margin-top:10px; color:#333; }
-p { color:#555; margin:5px 0; }
-.info { font-weight:bold; margin-top:5px; }
+/* Reset e fontes */
+body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
 
-select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-top: 10px;
-    font-size: 16px;
+/* Header */
+header { background:#ffd700; padding:10px 15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:100; }
+header h1 { margin:0; font-size:20px; color:#333; }
+.header-right { display:flex; gap:10px; flex-wrap:wrap; align-items:center; width:100%; max-width:600px; }
+.header-right input[type="text"] { padding:8px; font-size:14px; border-radius:5px; border:1px solid #ccc; flex:1; min-width:120px; }
+.header-right button { padding:8px 12px; font-size:14px; border:none; border-radius:5px; cursor:pointer; color:#fff; transition:0.2s; flex-shrink:0; }
+button.search-btn { background:#00a650; }
+button.store-btn { background:#3483fa; }
+button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
+
+/* Intro */
+.intro { padding:30px 15px; text-align:center; }
+.intro h2 { font-size:22px; margin-bottom:15px; }
+.intro p { font-size:16px; color:#555; margin-bottom:10px; }
+
+/* Produtos */
+.products { display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin:15px 0; display:none; }
+.product { background:#fff; width:calc(25% - 15px); border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column; text-align:center; transition:0.2s; }
+.product:hover { transform:translateY(-5px); box-shadow:0 6px 15px rgba(0,0,0,0.2); }
+.product img { width:100%; height:180px; object-fit:cover; }
+.product h3 { font-size:16px; margin:10px 0 5px; padding:0 10px; color:#333; }
+.product p { color:#555; margin:5px 0; font-weight:bold; }
+.product button { margin:10px; padding:10px; font-size:14px; border:none; border-radius:5px; color:#333; cursor:pointer; transition:0.2s; background:#ffcc00; font-weight:bold; }
+.product button:hover { background:#e6b800; }
+.inmetro { margin-top:5px; color:#007700; font-weight:bold; font-size:12px; }
+
+/* Spinner */
+@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+.spinner {
+    border:5px solid #f3f3f3;
+    border-top:5px solid #3483fa;
+    border-radius:50%;
+    width:40px;
+    height:40px;
+    animation:spin 1s linear infinite;
 }
 
-button.whatsapp {
-    padding:10px 20px;
-    font-size:16px;
-    border:none;
-    border-radius:5px;
-    background:#25D366;
-    color:#fff;
-    cursor:pointer;
-    margin-top:15px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
+/* Responsividade tipo Mercado Livre */
+@media screen and (max-width:1024px) { .product { width:calc(33.33% - 15px); } }
+@media screen and (max-width:768px)  { .product { width:calc(50% - 15px); } }
+@media screen and (max-width:480px) {
+    .product { width:calc(50% - 10px); }
+    header { justify-content:center; }
+    .header-right { flex-direction:column; gap:8px; width:100%; align-items: stretch; }
+    .header-right input[type="text"] { width:100%; }
+    .header-right button { width:48%; align-self:center; }
 }
-button.whatsapp:hover { background:#1ebe5b; }
 </style>
 </head>
 <body>
 
-<div class="container" id="productContainer"></div>
+<header>
+    <h1>Atacadão Pneus</h1>
+    <div class="header-right">
+        <input type="text" id="search" placeholder="Buscar produtos...">
+        <button class="search-btn" onclick="searchProducts()">Pesquisar</button>
+        <button class="store-btn" onclick="showStore()">Entrar na Loja</button>
+    </div>
+</header>
+
+<div class="intro" id="intro">
+    <h2>Bem-vindo ao Atacadão Pneus!</h2>
+    <p>Confira nossos pneus de qualidade, adicione produtos e compre facilmente.</p>
+    <p>Use o botão acima para entrar na loja ou pesquise produtos abaixo.</p>
+</div>
+
+<div class="products" id="productList"></div>
 
 <script>
-const productContainer = document.getElementById('productContainer');
-const product = JSON.parse(localStorage.getItem('selectedProduct'));
+const jsonURLs = [
+    "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos.JSON",
+    "https://gabrielerroa.github.io/Atacado-dos-Pneus/Sport.JSON",
+    "https://gabrielerroa.github.io/Atacado-dos-Pneus/PNEU.JSON"
+];
 
-// Teste local caso não exista produto no localStorage
-if(!product){
-    localStorage.setItem('selectedProduct', JSON.stringify({
-        "name": "PNEU 215/30R20 82W LINGLONG SPORT MASTER",
-        "price": "522.49",
-        "description": "Pneu de alta performance para carros de passeio, durabilidade garantida.",
-        "condicao": "Meia vida",
-        "options": [
-            {"nome": "unidade", "quantidade": 1},
-            {"nome": "unidade", "quantidade": 4}
-        ],
-        "img": "https://via.placeholder.com/400x300"
-    }));
-    location.reload();
+let products = [];
+const productList = document.getElementById('productList');
+
+// Loader (efeito de carregamento)
+const loader = document.createElement("div");
+loader.style = "display:flex;justify-content:center;align-items:center;width:100%;height:200px;";
+loader.innerHTML = `<div class="spinner"></div>`;
+
+function showLoader() {
+    productList.style.display = 'flex';
+    productList.innerHTML = '';
+    productList.appendChild(loader);
 }
 
-if(product){
-    const phoneNumber = "556193995989";
-    let selectedOption = product.options ? product.options[0] : {nome: "unidade", quantidade: 1};
+function hideLoader() {
+    if (productList.contains(loader)) productList.removeChild(loader);
+}
 
-    function updateWhatsAppLink(){
-        const encodedMessage = encodeURIComponent(
-            `Olá! Tenho interesse neste produto: ${product.name}\n` +
-            `Preço: R$ ${product.price}\n` +
-            `Condição: ${product.condicao}\n` +
-            `Quantidade: ${selectedOption.quantidade} ${selectedOption.nome}\n` +
-            `Pode me dar mais informações?`
-        );
-        return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+// Busca os produtos dos JSONs
+function fetchProducts(callback) {
+    showLoader();
+    const fetches = jsonURLs.map(url => 
+        fetch(url)
+        .then(res => res.json())
+        .catch(err => { console.error("Erro ao carregar:", url, err); return []; })
+    );
+    Promise.all(fetches).then(results => {
+        products = results.flat();
+        hideLoader();
+        if (callback) callback();
+    });
+}
+
+// Exibe produtos
+function displayProducts(items) {
+    hideLoader();
+    productList.style.display = 'flex';
+    productList.innerHTML = '';
+    if(items.length === 0){
+        productList.innerHTML = "<p style='width:100%; text-align:center; color:#555;'>Nenhum produto encontrado.</p>";
+        return;
     }
-
-    productContainer.innerHTML = `
-        <img src="${product.img}" alt="${product.name}">
-        <h2>${product.name}</h2>
-        <p class="info">Preço: R$ ${product.price}</p>
-        <p class="info">Condição: ${product.condicao}</p>
-        ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
-
-        <label for="quantidade"><strong>Escolha a quantidade:</strong></label>
-        <select id="quantidade">
-            ${product.options.map((opt, idx) => `<option value="${idx}">${opt.quantidade} ${opt.nome}</option>`).join('')}
-        </select>
-
-        <button class="whatsapp" id="whatsappBtn">
-            💬 Falar no WhatsApp
-        </button>
-    `;
-
-    const quantidadeSelect = document.getElementById('quantidade');
-    const whatsappBtn = document.getElementById('whatsappBtn');
-
-    quantidadeSelect.addEventListener('change', e => {
-        selectedOption = product.options[e.target.value];
+    items.forEach(p => {
+        const tipo = p.tipo ? `<p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p>` : '';
+        const condicao = p.condicao ? `<p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p>` : '';
+        const inmetro = p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : '';
+        productList.innerHTML += `
+        <div class="product">
+            <img src="${p.img}" alt="${p.name}">
+            <h3>${p.name}</h3>
+            <p>${p.price}</p>
+            ${tipo} ${condicao} ${inmetro}
+            <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
+        </div>`;
     });
+}
 
-    whatsappBtn.addEventListener('click', ()=>{
-        window.open(updateWhatsAppLink(), '_blank');
-    });
-}else{
-    productContainer.innerHTML = "<p>Nenhum produto selecionado.</p>";
+// Pesquisa produtos
+function searchProducts() {
+    document.getElementById('intro').style.display = 'none';
+    if (products.length === 0) {
+        fetchProducts(() => applySearch());
+    } else {
+        applySearch();
+    }
+}
+
+// Filtra apenas pela busca
+function applySearch() {
+    const query = document.getElementById('search').value.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+    displayProducts(filtered);
+}
+
+// Ver produto
+function viewProduct(product) {
+    localStorage.setItem('selectedProduct', JSON.stringify(product));
+    window.open('product.html', '_blank');
+}
+
+// Mostrar loja
+function showStore() {
+    document.getElementById('intro').style.display = 'none';
+    if (products.length === 0) {
+        fetchProducts(() => displayProducts(products));
+    } else {
+        displayProducts(products);
+    }
 }
 </script>
 
