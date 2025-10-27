@@ -61,43 +61,57 @@ button.whatsapp:hover { background:#1ebe5b; }
 const productContainer = document.getElementById('productContainer');
 let product = JSON.parse(localStorage.getItem('selectedProduct'));
 
-// Para teste local
+// Exemplo para teste local
 if(!product){
     localStorage.setItem('selectedProduct', JSON.stringify({
-        name: "Produto Exemplo",
+        name: "Pneu Aro 15",
         img: "https://via.placeholder.com/400x300",
-        price: "100.00",
-        description: "Produto usado em ótimo estado.",
+        price: "250.00",
+        description: "Pneu meia vida em ótimo estado, pronto para rodar.",
         condicao: "Meia vida",
-        options: [{ nome:"unidade", quantidade:1 }, { nome:"unidade", quantidade:4 }]
+        options: [
+            { nome:"unidade", quantidade:1 },
+            { nome:"unidades", quantidade:4 }
+        ]
     }));
     location.reload();
 }
 
 if(product){
     const phoneNumber = "556193995989";
-    let selectedOption = product.options && product.options.length > 0 ? product.options[0] : {nome:"unidade", quantidade:1};
-    
+    let selectedMode = "Varejo";
+    let selectedOption = product.options && product.options.length > 0
+        ? product.options[0]
+        : { nome: "unidade", quantidade: 1 };
+    let currentPrice = product.price || product.precoVarejo || product.precoAtacado || "—";
+    const condicao = product.condicao || "—";
+
+    // Atualiza o link do WhatsApp
     function updateWhatsAppLink(){
-        const priceValue = product.precoVarejo || product.precoAtacado || product.price || "—";
         const details = [
-            `Produto: ${product.name}`,
-            `Preço: R$ ${priceValue}`,
-            `Condição: ${product.condicao || "—"}`,
-            `Quantidade: ${selectedOption.quantidade} ${selectedOption.nome}`
+            `Produto: ${product.name || "Sem nome"}`,
+            `Preço (${selectedMode}): R$ ${currentPrice}`,
+            `Condição: ${condicao}`,
+            `Quantidade: ${selectedOption.quantidade} ${selectedOption.nome}`,
+            `Modo de compra: ${selectedMode}`
         ].join(' | ');
 
-        const encodedMessage = encodeURIComponent(`Olá! Tenho interesse neste produto: ${details}. Poderia me dar mais informações?`);
-        return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+        const msg = `Olá! Tenho interesse neste produto (${selectedMode}): ${details}. Poderia me dar mais informações?`;
+        return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`;
     }
 
-    // Gera HTML do produto
+    // Monta o HTML
     productContainer.innerHTML = `
-        <img src="${product.img}" alt="${product.name}">
-        <h2>${product.name}</h2>
-        <p class="info" id="priceText">Preço: R$ ${product.precoVarejo || product.precoAtacado || product.price || "—"}</p>
-        <p class="info">Condição: ${product.condicao || "—"}</p>
+        <img src="${product.img || 'https://via.placeholder.com/400x300'}" alt="${product.name || 'Produto'}">
+        <h2>${product.name || 'Produto sem nome'}</h2>
+        <p class="info" id="priceText">Preço: R$ ${currentPrice}</p>
+        <p class="info">Condição: ${condicao}</p>
         ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
+
+        <div class="choice-container" id="modeContainer">
+            <button class="choice-btn active" id="varejoBtn">Varejo</button>
+            <button class="choice-btn" id="atacadoBtn">Atacado</button>
+        </div>
 
         ${product.options && product.options.length > 0 ? `
         <div class="choice-container" id="optionsContainer">
@@ -112,7 +126,21 @@ if(product){
         <button class="whatsapp" id="whatsappBtn">💬 Falar no WhatsApp</button>
     `;
 
+    // Seletores
+    const varejoBtn = document.getElementById('varejoBtn');
+    const atacadoBtn = document.getElementById('atacadoBtn');
+    const priceText = document.getElementById('priceText');
     const whatsappBtn = document.getElementById('whatsappBtn');
+
+    // Alternar Varejo/Atacado
+    function updateMode(mode){
+        selectedMode = mode;
+        varejoBtn.classList.toggle('active', mode === "Varejo");
+        atacadoBtn.classList.toggle('active', mode === "Atacado");
+    }
+
+    varejoBtn.addEventListener('click', ()=> updateMode("Varejo"));
+    atacadoBtn.addEventListener('click', ()=> updateMode("Atacado"));
 
     // Seleção de quantidade
     if(product.options && product.options.length > 0){
@@ -127,6 +155,7 @@ if(product){
         });
     }
 
+    // Ação do botão WhatsApp
     whatsappBtn.addEventListener('click', ()=>{
         window.open(updateWhatsAppLink(), '_blank');
     });
