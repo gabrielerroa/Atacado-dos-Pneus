@@ -58,9 +58,7 @@
     font-weight: bold;
     transition: 0.3s;
   }
-  button:hover {
-    background: #0056b3;
-  }
+  button:hover { background: #0056b3; }
   .btn-copy { background: #28a745; }
   .btn-copy:hover { background: #1e7e34; }
   .btn-download { background: #17a2b8; }
@@ -81,6 +79,14 @@
     word-wrap: break-word;
     margin-top: 20px;
   }
+  .calc {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 15px;
+  }
 </style>
 </head>
 <body>
@@ -89,8 +95,8 @@
   <label>Nome do Produto</label>
   <input id="name" placeholder="Ex: PNEU 215/30R20 82W LINGLONG SPORT MASTER">
 
-  <label>Preço</label>
-  <input id="price" placeholder="Ex: 522.49">
+  <label>Preço unitário (R$)</label>
+  <input id="price" placeholder="Ex: 522.49" type="number" step="0.01">
 
   <label>Descrição</label>
   <textarea id="description" placeholder="Descrição do produto..."></textarea>
@@ -98,9 +104,12 @@
   <label>Imagem (cole em Base64)</label>
   <textarea id="img" placeholder="data:image/jpeg;base64,..."></textarea>
 
-  <label>Opções (quantidade)</label>
-  <input id="opt1" placeholder="Ex: 1 unidade">
-  <input id="opt2" placeholder="Ex: 4 unidades">
+  <label>Opções de quantidade</label>
+  <input id="opt1" placeholder="Ex: 1">
+  <input id="opt2" placeholder="Ex: 2">
+  <input id="opt3" placeholder="Ex: 4">
+
+  <div id="calc" class="calc" style="display:none;"></div>
 
   <div class="buttons">
     <button onclick="gerarJSON()">Gerar JSON</button>
@@ -113,25 +122,42 @@
 
 <script>
 function gerarJSON() {
-  const name = document.getElementById('name').value;
-  const price = document.getElementById('price').value;
-  const description = document.getElementById('description').value;
-  const img = document.getElementById('img').value;
-  const opt1 = document.getElementById('opt1').value;
-  const opt2 = document.getElementById('opt2').value;
+  const name = document.getElementById('name').value.trim() || "Produto sem nome";
+  const price = parseFloat(document.getElementById('price').value) || 0;
+  const description = document.getElementById('description').value.trim() || "";
+  const img = document.getElementById('img').value.trim() || "";
+  
+  const quantidades = [
+    parseInt(document.getElementById('opt1').value) || 1,
+    parseInt(document.getElementById('opt2').value) || 2,
+    parseInt(document.getElementById('opt3').value) || 4
+  ];
+
+  const opcoes = quantidades.map(q => ({
+    nome: `${q} unidade${q > 1 ? 's' : ''}`,
+    quantidade: q,
+    total: (price * q).toFixed(2)
+  }));
 
   const json = {
-    name: name,
-    price: price,
-    description: description,
+    name,
+    price: price.toFixed(2),
+    description,
     condicao: "Meia vida",
-    options: [
-      { nome: "unidade", quantidade: opt1 || 1 },
-      { nome: "unidade", quantidade: opt2 || 4 }
-    ],
-    img: img
+    options: opcoes,
+    img
   };
 
+  // Exibe calculadora
+  let htmlCalc = "<strong>💰 Tabela de Preços:</strong><br>";
+  opcoes.forEach(o => {
+    htmlCalc += `${o.nome}: R$ ${o.total}<br>`;
+  });
+  const calcDiv = document.getElementById('calc');
+  calcDiv.innerHTML = htmlCalc;
+  calcDiv.style.display = "block";
+
+  // Mostra JSON formatado
   document.getElementById('saida').textContent = JSON.stringify(json, null, 2);
 }
 
@@ -139,7 +165,7 @@ function copiarJSON() {
   const texto = document.getElementById('saida').textContent;
   if (!texto) return alert('Gere o JSON primeiro!');
   navigator.clipboard.writeText(texto);
-  alert('JSON copiado com sucesso!');
+  alert('✅ JSON copiado com sucesso!');
 }
 
 function baixarJSON() {
