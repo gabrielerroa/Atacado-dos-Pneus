@@ -81,7 +81,6 @@ if(product){
         <h2>${product.name}</h2>
         <p class="info">Preço: ${product.price}</p>
         ${product.tipo ? `<p class="info">Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}</p>` : ''}
-        ${product.condicao ? `<p class="info">Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}</p>` : ''}
         ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
 
         <div class="choice-container">
