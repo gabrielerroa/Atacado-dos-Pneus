@@ -38,16 +38,27 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
 .product button:hover { background:#e6b800; }
 .inmetro { margin-top:5px; color:#007700; font-weight:bold; font-size:12px; }
 
+/* Spinner */
+@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+.spinner {
+    border:5px solid #f3f3f3;
+    border-top:5px solid #3483fa;
+    border-radius:50%;
+    width:40px;
+    height:40px;
+    animation:spin 1s linear infinite;
+}
+
 /* Responsividade tipo Mercado Livre */
-@media screen and (max-width:1024px) { .product { width:calc(33.33% - 15px); } } /* 3 colunas tablets grandes */
-@media screen and (max-width:768px)  { .product { width:calc(50% - 15px); } } /* 2 colunas tablets pequenos */
+@media screen and (max-width:1024px) { .product { width:calc(33.33% - 15px); } }
+@media screen and (max-width:768px)  { .product { width:calc(50% - 15px); } }
 @media screen and (max-width:480px) {
-    .product { width:calc(50% - 10px); } /* 2 colunas no celular */
+    .product { width:calc(50% - 10px); }
     .filter-container { flex-direction:column; gap:8px; }
     header { justify-content:center; }
     .header-right { flex-direction:column; gap:8px; width:100%; align-items: stretch; }
     .header-right input[type="text"] { width:100%; }
-    .header-right button { width:48%; align-self:center; } /* botões lado a lado */
+    .header-right button { width:48%; align-self:center; }
 }
 </style>
 </head>
@@ -61,6 +72,22 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
         <button class="store-btn" onclick="showStore()">Entrar na Loja</button>
     </div>
 </header>
+
+<div class="filter-container" id="filters" style="display:none;">
+    <select id="tipoFilter">
+        <option value="">Todos os tipos</option>
+        <option value="varejo">Varejo</option>
+        <option value="atacado">Atacado</option>
+    </select>
+    <select id="condicaoFilter">
+        <option value="">Todos</option>
+        <option value="novo">Novo</option>
+        <option value="velho">Velho</option>
+    </select>
+    <label><input type="checkbox" id="inmetroFilter"> Apenas com selo Inmetro</label>
+    <button onclick="applyFilters()">Aplicar Filtros</button>
+</div>
+
 <div class="intro" id="intro">
     <h2>Bem-vindo ao Atacadão Pneus!</h2>
     <p>Confira nossos pneus de qualidade, adicione produtos e compre facilmente.</p>
@@ -79,7 +106,24 @@ const jsonURLs = [
 let products = [];
 const productList = document.getElementById('productList');
 
+// Loader (efeito de carregamento)
+const loader = document.createElement("div");
+loader.style = "display:flex;justify-content:center;align-items:center;width:100%;height:200px;";
+loader.innerHTML = `<div class="spinner"></div>`;
+
+function showLoader() {
+    productList.style.display = 'flex';
+    productList.innerHTML = '';
+    productList.appendChild(loader);
+}
+
+function hideLoader() {
+    if (productList.contains(loader)) productList.removeChild(loader);
+}
+
+// Busca os produtos dos JSONs
 function fetchProducts(callback) {
+    showLoader();
     const fetches = jsonURLs.map(url => 
         fetch(url)
         .then(res => res.json())
@@ -88,11 +132,14 @@ function fetchProducts(callback) {
     Promise.all(fetches).then(results => {
         products = results.flat();
         document.getElementById('filters').style.display = 'flex';
+        hideLoader();
         if (callback) callback();
     });
 }
 
+// Exibe produtos
 function displayProducts(items) {
+    hideLoader();
     productList.style.display = 'flex';
     productList.innerHTML = '';
     if(items.length === 0){
@@ -114,25 +161,35 @@ function displayProducts(items) {
     });
 }
 
+// Pesquisa produtos
 function searchProducts() {
-    if (products.length === 0) { fetchProducts(filterAndDisplay); } else { filterAndDisplay(); }
-    function filterAndDisplay(){
-        document.getElementById('intro').style.display = 'none';
+    document.getElementById('intro').style.display = 'none';
+    document.getElementById('filters').style.display = 'flex';
+    if (products.length === 0) {
+        fetchProducts(() => applyFilters());
+    } else {
         applyFilters();
     }
 }
 
+// Ver produto
 function viewProduct(product) {
     localStorage.setItem('selectedProduct', JSON.stringify(product));
     window.open('product.html', '_blank');
 }
 
+// Mostrar loja
 function showStore() {
     document.getElementById('intro').style.display = 'none';
-    if (products.length === 0) { fetchProducts(() => displayProducts(products)); } else { displayProducts(products); }
     document.getElementById('filters').style.display = 'flex';
+    if (products.length === 0) {
+        fetchProducts(() => displayProducts(products));
+    } else {
+        displayProducts(products);
+    }
 }
 
+// Aplicar filtros
 function applyFilters() {
     const tipo = document.getElementById('tipoFilter').value;
     const condicao = document.getElementById('condicaoFilter').value;
