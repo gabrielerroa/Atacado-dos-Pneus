@@ -36,8 +36,8 @@ const productContainer = document.getElementById('productContainer');
 const product = JSON.parse(localStorage.getItem('selectedProduct'));
 
 if(product){
-    // substitua SEUNUMERO pelo seu número (exemplo: 5511912345678)
-    const phoneNumber = "SEUNUMERO";
+    
+    const phoneNumber = "+55 61 9399-5989";
     const message = `Olá! Tenho interesse no produto ${product.name} (${product.price}). Poderia me dar mais informações?`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
