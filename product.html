@@ -17,6 +17,7 @@ p { color:#555; margin:5px 0; }
     justify-content: center;
     gap: 10px;
     margin-top: 15px;
+    flex-wrap: wrap;
 }
 
 .choice-btn {
@@ -33,15 +34,6 @@ p { color:#555; margin:5px 0; }
 .choice-btn.active {
     background:#25D366;
     color:#fff;
-}
-
-select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    margin-top: 10px;
-    font-size: 16px;
 }
 
 button.whatsapp {
@@ -67,100 +59,71 @@ button.whatsapp:hover { background:#1ebe5b; }
 
 <script>
 const productContainer = document.getElementById('productContainer');
-const product = JSON.parse(localStorage.getItem('selectedProduct'));
+let product = JSON.parse(localStorage.getItem('selectedProduct'));
 
-// Caso não exista produto
+// Para teste local
 if(!product){
     localStorage.setItem('selectedProduct', JSON.stringify({
         name: "Produto Exemplo",
-        precoVarejo: "100,00",
-        precoAtacado: "85,00",
-        description: "Descrição de teste.",
+        img: "https://via.placeholder.com/400x300",
+        price: "100.00",
+        description: "Produto usado em ótimo estado.",
         condicao: "Meia vida",
-        options: [
-            {nome: "unidade", quantidade: 1},
-            {nome: "unidade", quantidade: 4}
-        ],
-        img: "https://via.placeholder.com/400x300"
+        options: [{ nome:"unidade", quantidade:1 }, { nome:"unidade", quantidade:4 }]
     }));
     location.reload();
 }
 
 if(product){
     const phoneNumber = "556193995989";
-    let selectedMode = "Varejo";
     let selectedOption = product.options && product.options.length > 0 ? product.options[0] : {nome:"unidade", quantidade:1};
-
-    function updatePrice(){
-        return selectedMode === "Varejo" ? product.precoVarejo : product.precoAtacado;
-    }
-
+    
     function updateWhatsAppLink(){
-        const quantityText = `${selectedOption.quantidade || 1} ${selectedOption.nome || "unidade"}`;
+        const priceValue = product.precoVarejo || product.precoAtacado || product.price || "—";
         const details = [
             `Produto: ${product.name}`,
-            `Preço (${selectedMode}): R$ ${updatePrice()}`,
+            `Preço: R$ ${priceValue}`,
             `Condição: ${product.condicao || "—"}`,
-            `Modo de compra: ${selectedMode}`,
-            `Quantidade: ${quantityText}`
+            `Quantidade: ${selectedOption.quantidade} ${selectedOption.nome}`
         ].join(' | ');
 
-        const encodedMessage = encodeURIComponent(
-            `Olá! Tenho interesse neste produto: ${details}. Pode me dar mais informações?`
-        );
+        const encodedMessage = encodeURIComponent(`Olá! Tenho interesse neste produto: ${details}. Poderia me dar mais informações?`);
         return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     }
 
-    // Cria layout
-    let quantitySelectHTML = '';
-    if(product.options && product.options.length > 0){
-        quantitySelectHTML = `<select id="quantitySelect">
-            ${product.options.map(opt => `<option value="${opt.quantidade}" data-nome="${opt.nome || 'unidade'}">${opt.quantidade} ${opt.nome || 'unidade'}</option>`).join('')}
-        </select>`;
-    }
-
+    // Gera HTML do produto
     productContainer.innerHTML = `
         <img src="${product.img}" alt="${product.name}">
         <h2>${product.name}</h2>
-        <p class="info" id="priceText">Preço: R$ ${updatePrice()}</p>
+        <p class="info" id="priceText">Preço: R$ ${product.precoVarejo || product.precoAtacado || product.price || "—"}</p>
         <p class="info">Condição: ${product.condicao || "—"}</p>
         ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
 
-        <div class="choice-container">
-            <button class="choice-btn active" id="varejoBtn">Varejo</button>
-            <button class="choice-btn" id="atacadoBtn">Atacado</button>
+        ${product.options && product.options.length > 0 ? `
+        <div class="choice-container" id="optionsContainer">
+            ${product.options.map((opt, i)=>`
+                <button class="choice-btn ${i===0?'active':''}" data-index="${i}">
+                    ${opt.quantidade} ${opt.nome}
+                </button>
+            `).join('')}
         </div>
-
-        ${quantitySelectHTML}
+        ` : ''}
 
         <button class="whatsapp" id="whatsappBtn">💬 Falar no WhatsApp</button>
     `;
 
-    const varejoBtn = document.getElementById('varejoBtn');
-    const atacadoBtn = document.getElementById('atacadoBtn');
     const whatsappBtn = document.getElementById('whatsappBtn');
-    const priceText = document.getElementById('priceText');
-    const quantitySelect = document.getElementById('quantitySelect');
 
-    // Alterna Varejo/Atacado
-    function updateSelection(mode){
-        selectedMode = mode;
-        varejoBtn.classList.toggle('active', mode==="Varejo");
-        atacadoBtn.classList.toggle('active', mode==="Atacado");
-        priceText.textContent = `Preço: R$ ${updatePrice()}`;
-    }
-
-    varejoBtn.addEventListener('click', ()=> updateSelection("Varejo"));
-    atacadoBtn.addEventListener('click', ()=> updateSelection("Atacado"));
-
-    // Atualiza quantidade selecionada
-    if(quantitySelect){
-        quantitySelect.addEventListener('change', (e)=>{
-            const optionEl = e.target.selectedOptions[0];
-            selectedOption = {
-                quantidade: optionEl.value,
-                nome: optionEl.dataset.nome || "unidade"
-            };
+    // Seleção de quantidade
+    if(product.options && product.options.length > 0){
+        const optionButtons = document.querySelectorAll('#optionsContainer .choice-btn');
+        optionButtons.forEach(btn=>{
+            btn.addEventListener('click', ()=>{
+                optionButtons.forEach(b=>b.classList.remove('active'));
+                btn.classList.add('active');
+                const idx = btn.getAttribute('data-index');
+                selectedOption = product.options[idx];
+            });
         });
     }
 
