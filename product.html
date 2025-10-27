@@ -63,6 +63,11 @@ if(product){
         <button onclick="window.open('${whatsappLink}', '_blank')">
             💬 Falar no WhatsApp
         </button>
+         <label>Tipo de compra</label>
+    <div class="select-group" id="tipoCompra">
+      <div class="option-btn" data-value="Varejo">Varejo</div>
+      <div class="option-btn" data-value="Atacado">Atacado</div>
+    </div>
     `;
 }else{
     productContainer.innerHTML = "<p>Nenhum produto selecionado.</p>";
