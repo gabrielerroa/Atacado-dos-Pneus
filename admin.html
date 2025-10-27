@@ -11,12 +11,11 @@
   .card{background:var(--card-bg);padding:18px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
   h1{font-size:20px;margin:0 0 12px;color:#222}
   label{display:block;font-size:13px;color:#333;margin:10px 0 6px}
-  input[type="text"], input[type="number"], textarea, select{
+  input[type="text"], input[type="number"], textarea{
     width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;box-sizing:border-box;
   }
   textarea{min-height:90px;resize:vertical}
-  .row{display:flex;gap:10px;align-items:center}
-  .radio-group, .select-group{display:flex;gap:8px}
+  .row{display:flex;gap:10px;align-items:center;margin-bottom:8px}
   .option-btn{padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:#fafafa;cursor:pointer;user-select:none}
   .option-btn.active{background:var(--accent);color:#fff;border-color:rgba(0,0,0,0.08)}
   .img-preview{width:100%;height:220px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -25,6 +24,8 @@
   button{padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
   .btn-save{background:var(--accent);color:#fff}
   .btn-clear{background:#eee}
+  .btn-add{background:#555;color:#fff;font-size:13px;padding:6px 10px;margin-top:4px;border-radius:6px}
+  .btn-remove{background:#c0392b;color:#fff;font-size:12px;padding:4px 8px;border-radius:6px}
   .btn-whatsapp{background:var(--whatsapp);color:#fff;display:inline-flex;align-items:center;gap:8px}
   .small{font-size:12px;color:#666;margin-top:6px}
   pre{background:#f0f0f0;padding:12px;border-radius:8px;overflow-x:auto;margin-top:12px;font-size:13px;}
@@ -34,37 +35,36 @@
 <body>
 
 <div class="page">
-  <!-- Formulário de edição -->
+  <!-- Formulário -->
   <div class="card">
     <h1>Editar produto</h1>
 
-    <label for="inputImage">Imagem do produto</label>
+    <label>Imagem do produto</label>
     <div class="img-preview" id="imgPreview">Nenhuma imagem</div>
     <input type="file" id="inputImage" accept="image/*" style="margin-top:8px" />
 
-    <label for="inputName">Nome</label>
+    <label>Nome</label>
     <input type="text" id="inputName" placeholder="Ex: Pneu Aro 15" />
 
-    <label for="inputPrice">Preço (R$)</label>
+    <label>Preço (R$)</label>
     <input type="number" id="inputPrice" placeholder="Ex: 299.90" step="0.01" min="0" />
 
-    <label for="inputDescription">Descrição</label>
+    <label>Descrição</label>
     <textarea id="inputDescription" placeholder="Descrição do produto"></textarea>
 
-    <label>Tipo de compra</label>
-    <div class="select-group" id="tipoCompra">
-      <div class="option-btn" data-value="Varejo">Varejo</div>
-      <div class="option-btn" data-value="Atacado">Atacado</div>
-    </div>
+    <label>Opções e Unidades</label>
+    <div id="opcoesContainer"></div>
+    <button id="addOpcaoBtn" class="btn-add">➕ Adicionar opção</button>
 
     <label>Condição do pneu</label>
-    <div class="select-group" id="condicaoPneu">
+    <div id="condicaoPneu">
+      <div class="option-btn active" data-value="Meia vida">Meia vida</div>
       <div class="option-btn" data-value="Novo">Novo</div>
-      <div class="option-btn" data-value="Meia vida">Meia vida</div>
     </div>
 
-    <label style="margin-top:10px"><input type="checkbox" id="inmetroCheck" /> &nbsp; Possui selo INMETRO (se aplicável)</label>
-    <div class="small">Marque apenas se o pneu for remoldado/recapado com certificação.</div>
+    <label style="margin-top:10px">
+      <input type="checkbox" id="inmetroCheck" /> &nbsp; Possui selo INMETRO (se aplicável)
+    </label>
 
     <div class="actions">
       <button class="btn-save" id="saveBtn">Salvar produto (local)</button>
@@ -72,16 +72,17 @@
     </div>
   </div>
 
-  <!-- Pré-visualização do produto -->
+  <!-- Pré-visualização -->
   <div class="card" id="productCard">
     <h1>Pré-visualização</h1>
     <div id="productContainer">
-      <div class="img-preview" id="productImgPreview">Nenhum produto selecionado</div>
+      <div class="img-preview" id="productImgPreview">Nenhuma imagem</div>
       <h2 id="prodName" style="margin:12px 0 6px;color:#222">—</h2>
       <div id="prodPrice" style="font-weight:700;color:#111">—</div>
       <p id="prodDesc" style="color:#444">—</p>
 
-      <p class="small"><strong>Tipo:</strong> <span id="prodTipo">—</span></p>
+      <div id="prodOpcoes" class="small"></div>
+
       <p class="small"><strong>Condição:</strong> <span id="prodCond">—</span> <span id="prodInmetro"></span></p>
 
       <div style="margin-top:14px">
@@ -89,148 +90,203 @@
       </div>
     </div>
 
-    <!-- JSON em tempo real -->
     <h3 style="margin-top:20px">JSON do produto:</h3>
     <pre id="jsonOutput">Nenhum produto selecionado.</pre>
   </div>
 </div>
 
 <script>
-  const inputImage = document.getElementById('inputImage');
-  const imgPreview = document.getElementById('imgPreview');
-  const productImgPreview = document.getElementById('productImgPreview');
-  const inputName = document.getElementById('inputName');
-  const inputPrice = document.getElementById('inputPrice');
-  const inputDescription = document.getElementById('inputDescription');
-  const tipoCompraDiv = document.getElementById('tipoCompra');
-  const condicaoPneuDiv = document.getElementById('condicaoPneu');
-  const inmetroCheck = document.getElementById('inmetroCheck');
-  const saveBtn = document.getElementById('saveBtn');
-  const clearBtn = document.getElementById('clearBtn');
-  const whatsappBtn = document.getElementById('whatsappBtn');
-  const jsonOutput = document.getElementById('jsonOutput');
+const inputImage = document.getElementById('inputImage');
+const imgPreview = document.getElementById('imgPreview');
+const productImgPreview = document.getElementById('productImgPreview');
+const inputName = document.getElementById('inputName');
+const inputPrice = document.getElementById('inputPrice');
+const inputDescription = document.getElementById('inputDescription');
+const condicaoPneuDiv = document.getElementById('condicaoPneu');
+const inmetroCheck = document.getElementById('inmetroCheck');
+const saveBtn = document.getElementById('saveBtn');
+const clearBtn = document.getElementById('clearBtn');
+const whatsappBtn = document.getElementById('whatsappBtn');
+const jsonOutput = document.getElementById('jsonOutput');
+const opcoesContainer = document.getElementById('opcoesContainer');
+const addOpcaoBtn = document.getElementById('addOpcaoBtn');
 
-  const prodName = document.getElementById('prodName');
-  const prodPrice = document.getElementById('prodPrice');
-  const prodDesc = document.getElementById('prodDesc');
-  const prodTipo = document.getElementById('prodTipo');
-  const prodCond = document.getElementById('prodCond');
-  const prodInmetro = document.getElementById('prodInmetro');
+const prodName = document.getElementById('prodName');
+const prodPrice = document.getElementById('prodPrice');
+const prodDesc = document.getElementById('prodDesc');
+const prodCond = document.getElementById('prodCond');
+const prodInmetro = document.getElementById('prodInmetro');
+const prodOpcoes = document.getElementById('prodOpcoes');
 
-  let currentImageDataUrl = null;
+let currentImageDataUrl = null;
+const phoneNumber = "SEUNUMERO";
 
-  // Número WhatsApp (troque pelo seu)
-  const phoneNumber = "SEUNUMERO";
-
-  function setActiveOption(groupEl, value){
-    groupEl.querySelectorAll('.option-btn').forEach(b=>{
-      b.classList.toggle('active', b.dataset.value === value);
-    });
-  }
-  function getActiveOption(groupEl){
-    return groupEl.querySelector('.option-btn.active')?.dataset.value || null;
-  }
-
-  document.querySelectorAll('.select-group').forEach(group=>{
-    group.addEventListener('click', (e)=>{
-      const btn = e.target.closest('.option-btn');
-      if(!btn) return;
-      group.querySelectorAll('.option-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      updatePreviewAndJSON();
-    });
+// ======================
+// Funções utilitárias
+// ======================
+function setActiveOption(groupEl, value){
+  groupEl.querySelectorAll('.option-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.value === value);
   });
+}
+function getActiveOption(groupEl){
+  return groupEl.querySelector('.option-btn.active')?.dataset.value || null;
+}
 
-  inputImage.addEventListener('change', (e)=>{
-    const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev){
-      currentImageDataUrl = ev.target.result;
-      imgPreview.innerHTML = `<img src="${currentImageDataUrl}" alt="Imagem" />`;
-      productImgPreview.innerHTML = `<img src="${currentImageDataUrl}" alt="Imagem do produto" />`;
-      updatePreviewAndJSON();
-    };
-    reader.readAsDataURL(file);
-  });
-
-  function getProductData(){
-    return {
-      name: inputName.value.trim() || "—",
-      price: inputPrice.value ? Number(inputPrice.value).toFixed(2) : "—",
-      description: inputDescription.value.trim() || "—",
-      tipo: getActiveOption(tipoCompraDiv) || "—",
-      condicao: getActiveOption(condicaoPneuDiv) || "—",
-      inmetro: inmetroCheck.checked,
-      img: currentImageDataUrl || ""
-    };
-  }
-
-  function updatePreviewAndJSON(){
-    const product = getProductData();
-    productImgPreview.innerHTML = product.img ? `<img src="${product.img}" alt="${product.name}" />` : "Nenhuma imagem";
-    prodName.textContent = product.name;
-    prodPrice.textContent = product.price !== "—" ? `R$ ${product.price}` : "—";
-    prodDesc.textContent = product.description;
-    prodTipo.textContent = product.tipo;
-    prodCond.textContent = product.condicao;
-    prodInmetro.textContent = product.inmetro ? " • Possui selo INMETRO" : "";
-    jsonOutput.textContent = JSON.stringify(product, null, 2);
-  }
-
-  // Atualiza live quando campos de texto mudam
-  [inputName, inputPrice, inputDescription].forEach(el=>{
-    el.addEventListener('input', updatePreviewAndJSON);
-  });
-  inmetroCheck.addEventListener('change', updatePreviewAndJSON);
-
-  saveBtn.addEventListener('click', ()=>{
-    const product = getProductData();
-    localStorage.setItem('selectedProduct', JSON.stringify(product));
-    alert('Produto salvo localmente!');
-  });
-
-  clearBtn.addEventListener('click', ()=>{
-    if(!confirm('Limpar formulário e remover produto salvo?')) return;
-    localStorage.removeItem('selectedProduct');
-    currentImageDataUrl = null;
-    inputImage.value = "";
-    inputName.value = "";
-    inputPrice.value = "";
-    inputDescription.value = "";
-    inmetroCheck.checked = false;
-    setActiveOption(tipoCompraDiv,null);
-    setActiveOption(condicaoPneuDiv,null);
+// ======================
+// Opções dinâmicas
+// ======================
+function addOpcao(nome="", qtd=""){
+  const div = document.createElement('div');
+  div.className = 'row';
+  div.innerHTML = `
+    <input type="text" placeholder="Nome da opção" value="${nome}" style="flex:2">
+    <input type="number" placeholder="Qtd" min="0" value="${qtd}" style="width:80px">
+    <button class="btn-remove">✖</button>
+  `;
+  div.querySelector('.btn-remove').addEventListener('click', ()=>{
+    div.remove();
     updatePreviewAndJSON();
   });
+  div.querySelectorAll('input').forEach(el=>{
+    el.addEventListener('input', updatePreviewAndJSON);
+  });
+  opcoesContainer.appendChild(div);
+}
 
-  whatsappBtn.addEventListener('click', ()=>{
-    const product = getProductData();
-    const message = `Olá! Tenho interesse no produto: ${product.name}\nPreço: ${product.price}\nTipo: ${product.tipo}\nCondição: ${product.condicao}${product.inmetro ? ' (possui selo INMETRO)' : ''}\n\n${product.description}`;
-    const link = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-    window.open(link,'_blank');
+addOpcaoBtn.addEventListener('click', ()=>{
+  addOpcao();
+});
+
+// ======================
+// Imagem
+// ======================
+inputImage.addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    currentImageDataUrl = ev.target.result;
+    imgPreview.innerHTML = `<img src="${currentImageDataUrl}" />`;
+    productImgPreview.innerHTML = `<img src="${currentImageDataUrl}" />`;
+    updatePreviewAndJSON();
+  };
+  reader.readAsDataURL(file);
+});
+
+// ======================
+// Captura de dados
+// ======================
+function getProductData(){
+  const opcoes = [];
+  opcoesContainer.querySelectorAll('.row').forEach(row=>{
+    const nome = row.querySelector('input[type="text"]').value.trim();
+    const qtd = row.querySelector('input[type="number"]').value;
+    if(nome) opcoes.push({ nome, quantidade: qtd || 0 });
   });
 
-  // Carregar produto salvo
-  window.addEventListener('load', ()=>{
-    const saved = JSON.parse(localStorage.getItem('selectedProduct'));
-    if(saved){
-      inputName.value = saved.name || "";
-      inputPrice.value = saved.price || "";
-      inputDescription.value = saved.description || "";
-      setActiveOption(tipoCompraDiv, saved.tipo || null);
-      setActiveOption(condicaoPneuDiv, saved.condicao || null);
-      inmetroCheck.checked = !!saved.inmetro;
-      if(saved.img){
-        currentImageDataUrl = saved.img;
-        imgPreview.innerHTML = `<img src="${saved.img}" alt="Imagem" />`;
-      }
-      updatePreviewAndJSON();
-    } else {
-      updatePreviewAndJSON();
+  return {
+    name: inputName.value.trim() || "—",
+    price: inputPrice.value ? Number(inputPrice.value).toFixed(2) : "—",
+    description: inputDescription.value.trim() || "—",
+    condicao: getActiveOption(condicaoPneuDiv) || "—",
+    inmetro: inmetroCheck.checked,
+    opcoes,
+    img: currentImageDataUrl || ""
+  };
+}
+
+// ======================
+// Atualização ao vivo
+// ======================
+function updatePreviewAndJSON(){
+  const product = getProductData();
+  productImgPreview.innerHTML = product.img ? `<img src="${product.img}" />` : "Nenhuma imagem";
+  prodName.textContent = product.name;
+  prodPrice.textContent = product.price !== "—" ? `R$ ${product.price}` : "—";
+  prodDesc.textContent = product.description;
+  prodCond.textContent = product.condicao;
+  prodInmetro.textContent = product.inmetro ? "• Possui selo INMETRO" : "";
+  prodOpcoes.innerHTML = product.opcoes.length ?
+    `<strong>Opções:</strong><br>${product.opcoes.map(o=>`${o.nome}: ${o.quantidade} un.`).join('<br>')}` :
+    `<strong>Sem opções definidas</strong>`;
+  jsonOutput.textContent = JSON.stringify(product, null, 2);
+}
+
+// ======================
+// Listeners gerais
+// ======================
+[ inputName, inputPrice, inputDescription ].forEach(el=>{
+  el.addEventListener('input', updatePreviewAndJSON);
+});
+inmetroCheck.addEventListener('change', updatePreviewAndJSON);
+condicaoPneuDiv.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.option-btn');
+  if(!btn) return;
+  setActiveOption(condicaoPneuDiv, btn.dataset.value);
+  updatePreviewAndJSON();
+});
+
+// ======================
+// Botões
+// ======================
+saveBtn.addEventListener('click', ()=>{
+  const product = getProductData();
+  localStorage.setItem('selectedProduct', JSON.stringify(product));
+  alert('Produto salvo localmente!');
+});
+
+clearBtn.addEventListener('click', ()=>{
+  if(!confirm('Limpar formulário e remover produto salvo?')) return;
+  localStorage.removeItem('selectedProduct');
+  currentImageDataUrl = null;
+  inputImage.value = "";
+  inputName.value = "";
+  inputPrice.value = "";
+  inputDescription.value = "";
+  inmetroCheck.checked = false;
+  opcoesContainer.innerHTML = "";
+  setActiveOption(condicaoPneuDiv,"Meia vida");
+  updatePreviewAndJSON();
+});
+
+// ======================
+// WhatsApp
+// ======================
+whatsappBtn.addEventListener('click', ()=>{
+  const p = getProductData();
+  const opStr = p.opcoes.map(o=>`${o.nome}: ${o.quantidade} un.`).join("\n");
+  const msg = `Olá! Tenho interesse neste produto:\n`+
+              `Nome: ${p.name}\nPreço: ${p.price}\nCondição: ${p.condicao}\n${p.inmetro ? 'Possui selo INMETRO\n' : ''}`+
+              (opStr ? `Opções:\n${opStr}\n` : '')+
+              `\n${p.description}`;
+  const link = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(msg)}`;
+  window.open(link,'_blank');
+});
+
+// ======================
+// Carregar produto salvo
+// ======================
+window.addEventListener('load', ()=>{
+  const saved = JSON.parse(localStorage.getItem('selectedProduct'));
+  if(saved){
+    inputName.value = saved.name || "";
+    inputPrice.value = saved.price || "";
+    inputDescription.value = saved.description || "";
+    inmetroCheck.checked = !!saved.inmetro;
+    if(saved.condicao) setActiveOption(condicaoPneuDiv,saved.condicao);
+    if(saved.img){
+      currentImageDataUrl = saved.img;
+      imgPreview.innerHTML = `<img src="${saved.img}" />`;
+      productImgPreview.innerHTML = `<img src="${saved.img}" />`;
     }
-  });
+    opcoesContainer.innerHTML = "";
+    if(saved.opcoes) saved.opcoes.forEach(o=>addOpcao(o.nome,o.quantidade));
+  }
+  updatePreviewAndJSON();
+});
 </script>
 
 </body>
 </html>
+
