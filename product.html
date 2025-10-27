@@ -12,27 +12,13 @@ h2 { margin-top:10px; color:#333; }
 p { color:#555; margin:5px 0; }
 .info { font-weight:bold; margin-top:5px; }
 
-.choice-container {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.choice-btn {
-    padding:10px 20px;
-    border:2px solid #25D366;
-    border-radius:8px;
-    background:#fff;
-    color:#25D366;
-    font-weight:bold;
-    cursor:pointer;
-    transition:all 0.3s ease;
-}
-
-.choice-btn.active {
-    background:#25D366;
-    color:#fff;
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+    font-size: 16px;
 }
 
 button.whatsapp {
@@ -60,76 +46,61 @@ button.whatsapp:hover { background:#1ebe5b; }
 const productContainer = document.getElementById('productContainer');
 const product = JSON.parse(localStorage.getItem('selectedProduct'));
 
-// Exemplo de dados para teste local (caso o localStorage esteja vazio)
+// Teste local caso não exista produto no localStorage
 if(!product){
     localStorage.setItem('selectedProduct', JSON.stringify({
-        name: "Produto Exemplo",
-        img: "https://via.placeholder.com/400x300",
-        precoVarejo: "R$ 100,00",
-        precoAtacado: "R$ 85,00",
-        description: "Produto usado em ótimo estado, ideal para revenda."
+        "name": "PNEU 215/30R20 82W LINGLONG SPORT MASTER",
+        "price": "522.49",
+        "description": "Pneu de alta performance para carros de passeio, durabilidade garantida.",
+        "condicao": "Meia vida",
+        "options": [
+            {"nome": "unidade", "quantidade": 1},
+            {"nome": "unidade", "quantidade": 4}
+        ],
+        "img": "https://via.placeholder.com/400x300"
     }));
     location.reload();
 }
 
 if(product){
     const phoneNumber = "556193995989";
-    let selectedMode = "Varejo"; // modo inicial
-    let currentPrice = product.precoVarejo || product.price || "—";
-    const condicaoFixa = "Meia vida"; // condição sempre fixa
+    let selectedOption = product.options ? product.options[0] : {nome: "unidade", quantidade: 1};
 
-    // Gera o link do WhatsApp com os dados e condição fixa
     function updateWhatsAppLink(){
-        const details = [
-            `Produto: ${product.name}`,
-            `Preço (${selectedMode}): ${currentPrice}`,
-            `Condição: ${condicaoFixa}`,
-            `Modo de compra: ${selectedMode}`
-        ].join(' | ');
-
         const encodedMessage = encodeURIComponent(
-            `Olá! Tenho interesse neste produto (${selectedMode}): ${details}. Poderia me dar mais informações?`
+            `Olá! Tenho interesse neste produto: ${product.name}\n` +
+            `Preço: R$ ${product.price}\n` +
+            `Condição: ${product.condicao}\n` +
+            `Quantidade: ${selectedOption.quantidade} ${selectedOption.nome}\n` +
+            `Pode me dar mais informações?`
         );
         return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     }
 
-    // Cria o layout do produto
     productContainer.innerHTML = `
         <img src="${product.img}" alt="${product.name}">
         <h2>${product.name}</h2>
-        <p class="info" id="priceText">Preço: ${currentPrice}</p>
-        <p class="info">Condição: ${condicaoFixa}</p>
+        <p class="info">Preço: R$ ${product.price}</p>
+        <p class="info">Condição: ${product.condicao}</p>
         ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
 
-        <div class="choice-container">
-            <button class="choice-btn active" id="varejoBtn">Varejo</button>
-            <button class="choice-btn" id="atacadoBtn">Atacado</button>
-        </div>
+        <label for="quantidade"><strong>Escolha a quantidade:</strong></label>
+        <select id="quantidade">
+            ${product.options.map((opt, idx) => `<option value="${idx}">${opt.quantidade} ${opt.nome}</option>`).join('')}
+        </select>
 
         <button class="whatsapp" id="whatsappBtn">
             💬 Falar no WhatsApp
         </button>
     `;
 
-    // Seleciona os botões
-    const varejoBtn = document.getElementById('varejoBtn');
-    const atacadoBtn = document.getElementById('atacadoBtn');
+    const quantidadeSelect = document.getElementById('quantidade');
     const whatsappBtn = document.getElementById('whatsappBtn');
-    const priceText = document.getElementById('priceText');
 
-    // Alterna entre Varejo e Atacado
-    function updateSelection(mode){
-        selectedMode = mode;
-        varejoBtn.classList.toggle('active', mode === "Varejo");
-        atacadoBtn.classList.toggle('active', mode === "Atacado");
-        currentPrice = (mode === "Varejo" ? product.precoVarejo : product.precoAtacado) || product.price || "—";
-        priceText.textContent = `Preço: ${currentPrice}`;
-    }
+    quantidadeSelect.addEventListener('change', e => {
+        selectedOption = product.options[e.target.value];
+    });
 
-    varejoBtn.addEventListener('click', ()=> updateSelection("Varejo"));
-    atacadoBtn.addEventListener('click', ()=> updateSelection("Atacado"));
-
-    // Abre o WhatsApp com a mensagem personalizada
     whatsappBtn.addEventListener('click', ()=>{
         window.open(updateWhatsAppLink(), '_blank');
     });
