@@ -38,16 +38,33 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
 .product button:hover { background:#e6b800; }
 .inmetro { margin-top:5px; color:#007700; font-weight:bold; font-size:12px; }
 
+/* Loader */
+#loader {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:60vh;
+}
+.spinner {
+    border:6px solid #f3f3f3;
+    border-top:6px solid #25D366;
+    border-radius:50%;
+    width:50px;
+    height:50px;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
 /* Responsividade tipo Mercado Livre */
-@media screen and (max-width:1024px) { .product { width:calc(33.33% - 15px); } } /* 3 colunas tablets grandes */
-@media screen and (max-width:768px)  { .product { width:calc(50% - 15px); } } /* 2 colunas tablets pequenos */
+@media screen and (max-width:1024px) { .product { width:calc(33.33% - 15px); } }
+@media screen and (max-width:768px)  { .product { width:calc(50% - 15px); } }
 @media screen and (max-width:480px) {
-    .product { width:calc(50% - 10px); } /* 2 colunas no celular */
+    .product { width:calc(50% - 10px); } 
     .filter-container { flex-direction:column; gap:8px; }
     header { justify-content:center; }
     .header-right { flex-direction:column; gap:8px; width:100%; align-items: stretch; }
     .header-right input[type="text"] { width:100%; }
-    .header-right button { width:48%; align-self:center; } /* botões lado a lado */
+    .header-right button { width:48%; align-self:center; } 
 }
 </style>
 </head>
@@ -61,6 +78,8 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
         <button class="store-btn" onclick="showStore()">Entrar na Loja</button>
     </div>
 </header>
+
+<div id="loader"><div class="spinner"></div></div>
 
 <div class="filter-container" id="filters" style="display:none;">
     <select id="tipoFilter">
@@ -94,6 +113,7 @@ const jsonURLs = [
 
 let products = [];
 const productList = document.getElementById('productList');
+const loader = document.getElementById('loader');
 
 function fetchProducts(callback) {
     const fetches = jsonURLs.map(url => 
@@ -101,8 +121,10 @@ function fetchProducts(callback) {
         .then(res => res.json())
         .catch(err => { console.error("Erro ao carregar:", url, err); return []; })
     );
+
     Promise.all(fetches).then(results => {
         products = results.flat();
+        loader.style.display = 'none'; // esconde loader
         document.getElementById('filters').style.display = 'flex';
         if (callback) callback();
     });
@@ -131,11 +153,8 @@ function displayProducts(items) {
 }
 
 function searchProducts() {
-    if (products.length === 0) { fetchProducts(filterAndDisplay); } else { filterAndDisplay(); }
-    function filterAndDisplay(){
-        document.getElementById('intro').style.display = 'none';
-        applyFilters();
-    }
+    document.getElementById('intro').style.display = 'none';
+    if (products.length === 0) { fetchProducts(applyFilters); } else { applyFilters(); }
 }
 
 function viewProduct(product) {
