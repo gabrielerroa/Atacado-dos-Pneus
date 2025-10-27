@@ -70,7 +70,6 @@ if(product){
             `Preço: ${product.price}`,
             product.tipo ? `Tipo: ${product.tipo.charAt(0).toUpperCase() + product.tipo.slice(1)}` : '',
             product.condicao ? `Condição: ${product.condicao.charAt(0).toUpperCase() + product.condicao.slice(1)}` : '',
-            product.inmetro ? `Selo Inmetro: Sim` : 'Selo Inmetro: Não',
             `Modo de compra: ${selectedMode}`
         ].filter(Boolean).join(' | ');
 
