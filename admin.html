@@ -3,70 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Atacadão Pneus</title>
+<title>Produto</title>
 <style>
 body { font-family: Arial, sans-serif; padding:20px; background:#f5f5f5; }
-h1 { color:#333; }
-input, textarea { width:100%; padding:10px; margin:5px 0 10px; border-radius:5px; border:1px solid #ccc; }
-button { padding:10px 20px; border:none; border-radius:5px; background:#3483fa; color:#fff; cursor:pointer; margin-top:10px; }
-button:hover { background:#2968c8; }
-#jsonOutput { width:100%; height:200px; margin-top:10px; }
+.container { max-width:500px; margin:0 auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+img { width:100%; height:auto; border-radius:10px; }
+h2 { margin-top:10px; color:#333; }
+p { color:#555; margin:5px 0; }
+
+.option-group { margin-top:15px; }
+.option-group h3 { margin-bottom:8px; color:#333; font-size:16px; }
+
+.buttons {
+  display:flex;
+  gap:10px;
+}
+
+.option-btn {
+  flex:1;
+  padding:10px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  background:#f8f8f8;
+  cursor:pointer;
+  transition:all 0.2s;
+}
+
+.option-btn:hover {
+  background:#eaeaea;
+}
+
+.option-btn.active {
+  background:#3483fa;
+  color:#fff;
+  border-color:#2968c8;
+}
+
+button {
+  padding:10px 20px;
+  font-size:16px;
+  border:none;
+  border-radius:5px;
+  background:#25D366;
+  color:#fff;
+  cursor:pointer;
+  margin-top:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+button:hover { background:#1ebe5b; }
 </style>
 </head>
 <body>
 
-<h1>Admin - Atacadão Pneus</h1>
-
-<h3>Adicionar Produto</h3>
-<input type="text" id="name" placeholder="Nome do Produto">
-<input type="text" id="price" placeholder="Preço">
-<input type="file" id="imgFile" accept="image/*">
-<textarea id="description" placeholder="Descrição"></textarea>
-<button onclick="addProduct()">Adicionar Produto</button>
-
-<h3>JSON Atualizado</h3>
-<textarea id="jsonOutput" readonly></textarea>
+<div class="container" id="productContainer"></div>
 
 <script>
-let products = [
-    {
-        name: "Pneu Aro 16",
-        price: "R$ 350,00",
-        img: "https://via.placeholder.com/220x180?text=Pneu+Aro+16",
-        description: "Pneu de alta performance para carros de passeio, durabilidade garantida."
+const productContainer = document.getElementById('productContainer');
+const product = JSON.parse(localStorage.getItem('selectedProduct'));
+
+if(product){
+    const phoneNumber = "SEUNUMERO"; // ← troque pelo seu número
+    productContainer.innerHTML = `
+        <img src="${product.img}" alt="${product.name}">
+        <h2>${product.name}</h2>
+        <p><strong>Preço:</strong> ${product.price}</p>
+        <p><strong>Descrição:</strong> ${product.description}</p>
+
+        <div class="option-group">
+          <h3>Tipo de compra:</h3>
+          <div class="buttons" id="tipoCompra">
+            <div class="option-btn" data-value="Atacado">Atacado</div>
+            <div class="option-btn" data-value="Varejo">Varejo</div>
+          </div>
+        </div>
+
+        <div class="option-group">
+          <h3>Condição do pneu:</h3>
+          <div class="buttons" id="condicaoPneu">
+            <div class="option-btn" data-value="Novo">Novo</div>
+            <div class="option-btn" data-value="Meia vida">Meia vida</div>
+          </div>
+        </div>
+
+        <button id="whatsappBtn">💬 Falar no WhatsApp</button>
+    `;
+
+    // Função para selecionar botões
+    function setupSelection(groupId){
+      const group = document.getElementById(groupId);
+      const buttons = group.querySelectorAll(".option-btn");
+      buttons.forEach(btn => {
+        btn.addEventListener("click", ()=>{
+          buttons.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+        });
+      });
     }
-];
 
-const output = document.getElementById('jsonOutput');
-updateJSON();
+    setupSelection("tipoCompra");
+    setupSelection("condicaoPneu");
 
-function addProduct() {
-    const name = document.getElementById('name').value;
-    const price = document.getElementById('price').value;
-    const description = document.getElementById('description').value;
-    const fileInput = document.getElementById('imgFile');
-    const file = fileInput.files[0];
+    // Evento do botão WhatsApp
+    document.getElementById("whatsappBtn").addEventListener("click", ()=>{
+      const tipo = document.querySelector("#tipoCompra .active")?.dataset.value || "Não informado";
+      const condicao = document.querySelector("#condicaoPneu .active")?.dataset.value || "Não informada";
+      const message = `Olá! Tenho interesse no produto ${product.name} (${product.price}). 
+Tipo de compra: ${tipo}.
+Condição do pneu: ${condicao}. 
+Poderia me dar mais informações?`;
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+      window.open(whatsappLink, "_blank");
+    });
 
-    if(name && price && description && file){
-        const reader = new FileReader();
-        reader.onload = function(e){
-            const imgBase64 = e.target.result; // imagem em Base64
-            products.push({name, price, img: imgBase64, description});
-            updateJSON();
-            document.getElementById('name').value='';
-            document.getElementById('price').value='';
-            document.getElementById('description').value='';
-            fileInput.value = '';
-            alert("Produto adicionado! Copie o JSON abaixo e cole no GitHub.");
-        }
-        reader.readAsDataURL(file);
-    } else {
-        alert("Preencha todos os campos e selecione uma imagem!");
-    }
-}
-
-function updateJSON(){
-    output.value = JSON.stringify(products, null, 2);
+}else{
+    productContainer.innerHTML = "<p>Nenhum produto selecionado.</p>";
 }
 </script>
 
