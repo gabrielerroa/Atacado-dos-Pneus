@@ -3,132 +3,138 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Atacadão Pneus</title>
+<title>Produto</title>
 <style>
-body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
-header { background:#ffd700; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
-header h1 { margin:0; font-size:24px; color:#333; }
-.header-right { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-.header-right input[type="text"] { padding:10px; font-size:16px; border-radius:5px; border:1px solid #ccc; width:200px; }
-.header-right button { padding:10px 15px; font-size:16px; border:none; border-radius:5px; cursor:pointer; color:#fff; transition:0.2s; }
-button.search-btn { background:#00a650; }
-button.store-btn { background:#3483fa; }
-button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
-.filter-container { margin:20px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
-.filter-container select, .filter-container input[type="checkbox"] { padding:8px; font-size:14px; border-radius:5px; border:1px solid #ccc; }
-.intro { padding:50px; text-align:center; }
-.intro h2 { font-size:28px; margin-bottom:20px; }
-.intro p { font-size:18px; color:#555; margin-bottom:20px; }
-.products { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin:20px 0; display:none; }
-.product { background:#fff; width:220px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column; text-align:center; transition:0.2s; }
-.product:hover { transform:translateY(-5px); box-shadow:0 6px 15px rgba(0,0,0,0.2); }
-.product img { width:100%; height:180px; object-fit:cover; }
-.product h3 { font-size:18px; margin:10px 0 5px; padding:0 10px; color:#333; }
-.product p { color:#555; margin:5px 0; font-weight:bold; }
-.product button { margin:10px; padding:10px; font-size:16px; border:none; border-radius:5px; color:#333; cursor:pointer; transition:0.2s; background:#ffcc00; font-weight:bold; }
-.product button:hover { background:#e6b800; }
-.inmetro { margin-top:5px; color:#007700; font-weight:bold; font-size:12px; }
+body { font-family: Arial, sans-serif; padding:20px; background:#f5f5f5; }
+.container { max-width:500px; margin:0 auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+img { width:100%; height:auto; border-radius:10px; }
+h2 { margin-top:10px; color:#333; }
+p { color:#555; margin:5px 0; }
+.info { font-weight:bold; margin-top:5px; }
 
-/* Responsividade tipo Mercado Livre */
-@media screen and (max-width:1024px) { .product { width:calc(33.33% - 20px); } }
-@media screen and (max-width:768px)  { .product { width:calc(50% - 20px); } }
-@media screen and (max-width:480px)  { .product { width:calc(50% - 10px); } }
+.choice-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.choice-btn {
+    padding:10px 20px;
+    border:2px solid #25D366;
+    border-radius:8px;
+    background:#fff;
+    color:#25D366;
+    font-weight:bold;
+    cursor:pointer;
+    transition:all 0.3s ease;
+}
+
+.choice-btn.active {
+    background:#25D366;
+    color:#fff;
+}
+
+button.whatsapp {
+    padding:10px 20px;
+    font-size:16px;
+    border:none;
+    border-radius:5px;
+    background:#25D366;
+    color:#fff;
+    cursor:pointer;
+    margin-top:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+button.whatsapp:hover { background:#1ebe5b; }
 </style>
 </head>
 <body>
-<header>
-    <h1>Atacadão Pneus</h1>
-    <div class="header-right">
-        <input type="text" id="search" placeholder="Buscar produtos...">
-        <button class="search-btn" onclick="searchProducts()">Pesquisar</button>
-        <button class="store-btn" onclick="showStore()">Entrar na Loja</button>
-    </div>
-</header>
 
-<div class="intro" id="intro">
-    <h2>Bem-vindo ao Atacadão Pneus!</h2>
-    <p>Confira nossos pneus de qualidade, adicione produtos e compre facilmente.</p>
-    <p>Use o botão acima para entrar na loja ou pesquise produtos abaixo.</p>
-</div>
-
-<div class="products" id="productList"></div>
+<div class="container" id="productContainer"></div>
 
 <script>
-const jsonURLs = [
-    "https://gabrielerroa.github.io/Atacado-dos-Pneus/produtos.JSON",
-    "https://gabrielerroa.github.io/Atacado-dos-Pneus/Sport.JSON",
-    "https://gabrielerroa.github.io/Atacado-dos-Pneus/PNEU.JSON"
-];
+const productContainer = document.getElementById('productContainer');
+const product = JSON.parse(localStorage.getItem('selectedProduct'));
 
-let products = [];
-const productList = document.getElementById('productList');
-
-function fetchProducts(callback) {
-    const fetches = jsonURLs.map(url => 
-        fetch(url)
-        .then(res => res.json())
-        .catch(err => { console.error("Erro ao carregar:", url, err); return []; })
-    );
-
-    Promise.all(fetches).then(results => {
-        products = results.flat();
-        document.getElementById('filters').style.display = 'flex';
-        if (callback) callback();
-    });
+// Exemplo de dados para teste local (caso o localStorage esteja vazio)
+if(!product){
+    localStorage.setItem('selectedProduct', JSON.stringify({
+        name: "Produto Exemplo",
+        img: "https://via.placeholder.com/400x300",
+        precoVarejo: "R$ 100,00",
+        precoAtacado: "R$ 85,00",
+        description: "Produto usado em ótimo estado, ideal para revenda."
+    }));
+    location.reload();
 }
 
-function displayProducts(items) {
-    productList.style.display = 'flex';
-    productList.innerHTML = '';
-    if(items.length === 0){
-        productList.innerHTML = "<p style='width:100%; text-align:center; color:#555;'>Nenhum produto encontrado.</p>";
-        return;
+if(product){
+    const phoneNumber = "556193995989";
+    let selectedMode = "Varejo"; // modo inicial
+    let currentPrice = product.precoVarejo || product.price || "—";
+    const condicaoFixa = "Meia vida"; // condição sempre fixa
+
+    // Gera o link do WhatsApp com os dados e condição fixa
+    function updateWhatsAppLink(){
+        const details = [
+            `Produto: ${product.name}`,
+            `Preço (${selectedMode}): ${currentPrice}`,
+            `Condição: ${condicaoFixa}`,
+            `Modo de compra: ${selectedMode}`
+        ].join(' | ');
+
+        const encodedMessage = encodeURIComponent(
+            `Olá! Tenho interesse neste produto (${selectedMode}): ${details}. Poderia me dar mais informações?`
+        );
+        return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     }
-    items.forEach(p => {
-        const tipo = p.tipo ? `<p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p>` : '';
-        const condicao = p.condicao ? `<p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p>` : '';
-        productList.innerHTML += `
-        <div class="product">
-            <img src="${p.img}" alt="${p.name}">
-            <h3>${p.name}</h3>
-            <p>${p.price}</p>
-            ${tipo} ${condicao} 
-            <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
-        </div>`;
+
+    // Cria o layout do produto
+    productContainer.innerHTML = `
+        <img src="${product.img}" alt="${product.name}">
+        <h2>${product.name}</h2>
+        <p class="info" id="priceText">Preço: ${currentPrice}</p>
+        <p class="info">Condição: ${condicaoFixa}</p>
+        ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
+
+        <div class="choice-container">
+            <button class="choice-btn active" id="varejoBtn">Varejo</button>
+            <button class="choice-btn" id="atacadoBtn">Atacado</button>
+        </div>
+
+        <button class="whatsapp" id="whatsappBtn">
+            💬 Falar no WhatsApp
+        </button>
+    `;
+
+    // Seleciona os botões
+    const varejoBtn = document.getElementById('varejoBtn');
+    const atacadoBtn = document.getElementById('atacadoBtn');
+    const whatsappBtn = document.getElementById('whatsappBtn');
+    const priceText = document.getElementById('priceText');
+
+    // Alterna entre Varejo e Atacado
+    function updateSelection(mode){
+        selectedMode = mode;
+        varejoBtn.classList.toggle('active', mode === "Varejo");
+        atacadoBtn.classList.toggle('active', mode === "Atacado");
+        currentPrice = (mode === "Varejo" ? product.precoVarejo : product.precoAtacado) || product.price || "—";
+        priceText.textContent = `Preço: ${currentPrice}`;
+    }
+
+    varejoBtn.addEventListener('click', ()=> updateSelection("Varejo"));
+    atacadoBtn.addEventListener('click', ()=> updateSelection("Atacado"));
+
+    // Abre o WhatsApp com a mensagem personalizada
+    whatsappBtn.addEventListener('click', ()=>{
+        window.open(updateWhatsAppLink(), '_blank');
     });
-}
-
-function searchProducts() {
-    document.getElementById('intro').style.display = 'none';
-    if (products.length === 0) { fetchProducts(applyFilters); } else { applyFilters(); }
-}
-
-function viewProduct(product) {
-    localStorage.setItem('selectedProduct', JSON.stringify(product));
-    window.open('product.html', '_blank');
-}
-
-function showStore() {
-    document.getElementById('intro').style.display = 'none';
-    if (products.length === 0) { fetchProducts(() => displayProducts(products)); } else { displayProducts(products); }
-    document.getElementById('filters').style.display = 'flex';
-}
-
-function applyFilters() {
-    const tipo = document.getElementById('tipoFilter').value;
-    const condicao = document.getElementById('condicaoFilter').value;
-    const inmetroChecked = document.getElementById('inmetroFilter').checked;
-    const query = document.getElementById('search').value.toLowerCase();
-
-    let filtered = products.filter(p => {
-        let match = true;
-        if(tipo) match = match && p.tipo && p.tipo.toLowerCase() === tipo;
-        if(condicao) match = match && p.condicao && p.condicao.toLowerCase() === condicao;
-        if(inmetroChecked) match = match && p.inmetro === true;
-        if(query) match = match && p.name.toLowerCase().includes(query);
-        return match;
-    });
-    displayProducts(filtered);
+}else{
+    productContainer.innerHTML = "<p>Nenhum produto selecionado.</p>";
 }
 </script>
 
