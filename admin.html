@@ -3,195 +3,154 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Atacadão dos Pneus</title>
+<title>Gerador de JSON - Atacadão Pneus</title>
 <style>
   body {
     font-family: Arial, sans-serif;
-    background: #f8f8f8;
+    background: #f4f4f4;
     margin: 0;
-    padding: 20px;
+    padding: 0;
   }
-
-  h1 {
+  header {
+    background: #ffd700;
+    color: #000;
+    padding: 15px;
     text-align: center;
-    color: #222;
+    font-weight: bold;
   }
-
-  .container {
-    max-width: 600px;
-    margin: 0 auto;
-    background: white;
+  main {
     padding: 20px;
+    max-width: 700px;
+    margin: auto;
+    background: white;
     border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
   }
-
   label {
     display: block;
     margin-top: 10px;
     font-weight: bold;
   }
-
   input, textarea {
     width: 100%;
-    padding: 8px;
-    margin-top: 4px;
+    padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-
-  textarea {
-    resize: vertical;
-  }
-
-  .options-container {
-    margin-top: 10px;
-  }
-
-  .options-container div {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 5px;
-  }
-
-  button {
-    background-color: #FFD700;
-    border: none;
-    padding: 10px 16px;
-    color: #000;
     border-radius: 8px;
-    font-weight: bold;
+    margin-top: 5px;
+    box-sizing: border-box;
+  }
+  textarea { resize: vertical; }
+  .buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top: 15px;
+    gap: 10px;
+  }
+  button {
+    flex: 1;
+    padding: 12px;
+    background: #007bff;
+    border: none;
+    color: white;
+    border-radius: 10px;
     cursor: pointer;
+    font-weight: bold;
     transition: 0.3s;
   }
-
   button:hover {
-    background-color: #ffbf00;
-    transform: scale(1.05);
+    background: #0056b3;
   }
-
-  .btn-remove {
-    background-color: #222;
-    color: #fff;
-  }
-
-  .btn-remove:hover {
-    background-color: #444;
-  }
-
-  .preview {
-    margin-top: 20px;
-    text-align: center;
-  }
-
-  .preview img {
+  .btn-copy { background: #28a745; }
+  .btn-copy:hover { background: #1e7e34; }
+  .btn-download { background: #17a2b8; }
+  .btn-download:hover { background: #117a8b; }
+  img {
+    display: block;
+    margin: 15px auto;
     max-width: 100%;
-    height: auto;
     border-radius: 8px;
-    border: 1px solid #ccc;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
   }
-
   pre {
-    background: #222;
-    color: #00ff6a;
-    padding: 15px;
-    border-radius: 10px;
-    margin-top: 15px;
-    overflow-x: auto;
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-top: 20px;
   }
 </style>
 </head>
 <body>
+<header>Gerador de JSON - Atacadão Pneus</header>
+<main>
+  <label>Nome do Produto</label>
+  <input id="name" placeholder="Ex: PNEU 215/30R20 82W LINGLONG SPORT MASTER">
 
-<h1>Adicionar Produto</h1>
+  <label>Preço</label>
+  <input id="price" placeholder="Ex: 522.49">
 
-<div class="container">
-  <label>Nome:</label>
-  <input type="text" id="name">
+  <label>Descrição</label>
+  <textarea id="description" placeholder="Descrição do produto..."></textarea>
 
-  <label>Preço:</label>
-  <input type="text" id="price">
+  <label>Imagem (cole em Base64)</label>
+  <textarea id="img" placeholder="data:image/jpeg;base64,..."></textarea>
 
-  <label>Descrição:</label>
-  <textarea id="description"></textarea>
+  <label>Opções (quantidade)</label>
+  <input id="opt1" placeholder="Ex: 1 unidade">
+  <input id="opt2" placeholder="Ex: 4 unidades">
 
-  <label>Imagem:</label>
-  <input type="file" id="imgInput" accept="image/*">
-
-  <div class="preview">
-    <img id="previewImage" src="" alt="Pré-visualização">
+  <div class="buttons">
+    <button onclick="gerarJSON()">Gerar JSON</button>
+    <button class="btn-copy" onclick="copiarJSON()">Copiar JSON</button>
+    <button class="btn-download" onclick="baixarJSON()">Baixar JSON</button>
   </div>
 
-  <label>Opções de Quantidade:</label>
-  <div class="options-container" id="optionsContainer">
-    <div>
-      <input type="text" placeholder="Nome (ex: unidade)" class="option-name">
-      <input type="number" placeholder="Quantidade" class="option-qty">
-      <button class="btn-remove" onclick="removeOption(this)">Remover</button>
-    </div>
-  </div>
-  <button onclick="addOption()">Adicionar Opção</button>
-
-  <hr>
-
-  <button onclick="generateJSON()">Gerar JSON</button>
-
-  <pre id="output"></pre>
-</div>
+  <pre id="saida"></pre>
+</main>
 
 <script>
-function addOption() {
-  const container = document.getElementById("optionsContainer");
-  const div = document.createElement("div");
-  div.innerHTML = `
-    <input type="text" placeholder="Nome (ex: unidade)" class="option-name">
-    <input type="number" placeholder="Quantidade" class="option-qty">
-    <button class="btn-remove" onclick="removeOption(this)">Remover</button>
-  `;
-  container.appendChild(div);
-}
-
-function removeOption(btn) {
-  btn.parentElement.remove();
-}
-
-document.getElementById("imgInput").addEventListener("change", function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    document.getElementById("previewImage").src = event.target.result;
-  };
-  reader.readAsDataURL(file);
-});
-
-function generateJSON() {
-  const name = document.getElementById("name").value || "Sem nome";
-  const price = document.getElementById("price").value || "0.00";
-  const description = document.getElementById("description").value || "Sem descrição";
-  const condicao = "Meia vida";
-  const img = document.getElementById("previewImage").src || "";
-
-  const optionsEls = document.querySelectorAll(".options-container div");
-  const options = [];
-  optionsEls.forEach(el => {
-    const nome = el.querySelector(".option-name").value || "unidade";
-    const quantidade = parseInt(el.querySelector(".option-qty").value) || 1;
-    options.push({ nome, quantidade });
-  });
+function gerarJSON() {
+  const name = document.getElementById('name').value;
+  const price = document.getElementById('price').value;
+  const description = document.getElementById('description').value;
+  const img = document.getElementById('img').value;
+  const opt1 = document.getElementById('opt1').value;
+  const opt2 = document.getElementById('opt2').value;
 
   const json = {
-    name,
-    price,
-    description,
-    condicao,
-    options,
-    img
+    name: name,
+    price: price,
+    description: description,
+    condicao: "Meia vida",
+    options: [
+      { nome: "unidade", quantidade: opt1 || 1 },
+      { nome: "unidade", quantidade: opt2 || 4 }
+    ],
+    img: img
   };
 
-  document.getElementById("output").textContent = JSON.stringify(json, null, 2);
+  document.getElementById('saida').textContent = JSON.stringify(json, null, 2);
+}
+
+function copiarJSON() {
+  const texto = document.getElementById('saida').textContent;
+  if (!texto) return alert('Gere o JSON primeiro!');
+  navigator.clipboard.writeText(texto);
+  alert('JSON copiado com sucesso!');
+}
+
+function baixarJSON() {
+  const texto = document.getElementById('saida').textContent;
+  if (!texto) return alert('Gere o JSON primeiro!');
+  const blob = new Blob([texto], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'produto.json';
+  link.click();
 }
 </script>
-
 </body>
 </html>
