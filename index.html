@@ -18,10 +18,6 @@ button.search-btn { background:#00a650; }
 button.store-btn { background:#3483fa; }
 button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
 
-/* Filtros */
-.filter-container { margin:15px 10px; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
-.filter-container select, .filter-container input[type="checkbox"] { padding:8px; font-size:14px; border-radius:5px; border:1px solid #ccc; }
-
 /* Intro */
 .intro { padding:30px 15px; text-align:center; }
 .intro h2 { font-size:22px; margin-bottom:15px; }
@@ -54,7 +50,6 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
 @media screen and (max-width:768px)  { .product { width:calc(50% - 15px); } }
 @media screen and (max-width:480px) {
     .product { width:calc(50% - 10px); }
-    .filter-container { flex-direction:column; gap:8px; }
     header { justify-content:center; }
     .header-right { flex-direction:column; gap:8px; width:100%; align-items: stretch; }
     .header-right input[type="text"] { width:100%; }
@@ -72,21 +67,6 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
         <button class="store-btn" onclick="showStore()">Entrar na Loja</button>
     </div>
 </header>
-
-<div class="filter-container" id="filters" style="display:none;">
-    <select id="tipoFilter">
-        <option value="">Todos os tipos</option>
-        <option value="varejo">Varejo</option>
-        <option value="atacado">Atacado</option>
-    </select>
-    <select id="condicaoFilter">
-        <option value="">Todos</option>
-        <option value="novo">Novo</option>
-        <option value="velho">Velho</option>
-    </select>
-    <label><input type="checkbox" id="inmetroFilter"> Apenas com selo Inmetro</label>
-    <button onclick="applyFilters()">Aplicar Filtros</button>
-</div>
 
 <div class="intro" id="intro">
     <h2>Bem-vindo ao Atacadão Pneus!</h2>
@@ -109,7 +89,7 @@ const productList = document.getElementById('productList');
 // Loader (efeito de carregamento)
 const loader = document.createElement("div");
 loader.style = "display:flex;justify-content:center;align-items:center;width:100%;height:200px;";
-loader.innerHTML = `<div class="spinner"></div>`;
+loader.innerHTML = <div class="spinner"></div>;
 
 function showLoader() {
     productList.style.display = 'flex';
@@ -131,7 +111,6 @@ function fetchProducts(callback) {
     );
     Promise.all(fetches).then(results => {
         products = results.flat();
-        document.getElementById('filters').style.display = 'flex';
         hideLoader();
         if (callback) callback();
     });
@@ -147,8 +126,8 @@ function displayProducts(items) {
         return;
     }
     items.forEach(p => {
-        const tipo = p.tipo ? `<p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p>` : '';
-        const condicao = p.condicao ? `<p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p>` : '';
+        const tipo = p.tipo ? <p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p> : '';
+        const condicao = p.condicao ? <p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p> : '';
         const inmetro = p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : '';
         productList.innerHTML += `
         <div class="product">
@@ -164,12 +143,18 @@ function displayProducts(items) {
 // Pesquisa produtos
 function searchProducts() {
     document.getElementById('intro').style.display = 'none';
-    document.getElementById('filters').style.display = 'flex';
     if (products.length === 0) {
-        fetchProducts(() => applyFilters());
+        fetchProducts(() => applySearch());
     } else {
-        applyFilters();
+        applySearch();
     }
+}
+
+// Filtra apenas pela busca
+function applySearch() {
+    const query = document.getElementById('search').value.toLowerCase();
+    const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+    displayProducts(filtered);
 }
 
 // Ver produto
@@ -181,30 +166,11 @@ function viewProduct(product) {
 // Mostrar loja
 function showStore() {
     document.getElementById('intro').style.display = 'none';
-    document.getElementById('filters').style.display = 'flex';
     if (products.length === 0) {
         fetchProducts(() => displayProducts(products));
     } else {
         displayProducts(products);
     }
-}
-
-// Aplicar filtros
-function applyFilters() {
-    const tipo = document.getElementById('tipoFilter').value;
-    const condicao = document.getElementById('condicaoFilter').value;
-    const inmetroChecked = document.getElementById('inmetroFilter').checked;
-    const query = document.getElementById('search').value.toLowerCase();
-
-    let filtered = products.filter(p => {
-        let match = true;
-        if(tipo) match = match && p.tipo && p.tipo.toLowerCase() === tipo;
-        if(condicao) match = match && p.condicao && p.condicao.toLowerCase() === condicao;
-        if(inmetroChecked) match = match && p.inmetro === true;
-        if(query) match = match && p.name.toLowerCase().includes(query);
-        return match;
-    });
-    displayProducts(filtered);
 }
 </script>
 
