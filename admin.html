@@ -103,6 +103,7 @@ function generateJSON() {
   const description = document.getElementById("description").value || "Sem descrição";
   const condicao = "Meia vida";
   const img = document.getElementById("previewImage").src || "";
+  const price = parseFloat(document.getElementById("unitPrice").value).toFixed(2); // Preço da 1ª unidade
 
   const optionsEls = document.querySelectorAll(".options-container div");
   const options = [];
@@ -113,7 +114,7 @@ function generateJSON() {
     options.push({ nome, quantidade, total });
   });
 
-  const json = { name, description, condicao, options, img };
+  const json = { name, price, description, condicao, options, img };
   document.getElementById("output").textContent = JSON.stringify(json, null, 2);
 }
 
