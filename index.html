@@ -98,13 +98,12 @@ function displayProducts(items) {
     items.forEach(p => {
         const tipo = p.tipo ? `<p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p>` : '';
         const condicao = p.condicao ? `<p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p>` : '';
-        const inmetro = p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : '';
         productList.innerHTML += `
         <div class="product">
             <img src="${p.img}" alt="${p.name}">
             <h3>${p.name}</h3>
             <p>${p.price}</p>
-            ${tipo} ${condicao} ${inmetro}
+            ${tipo} ${condicao} 
             <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
         </div>`;
     });
