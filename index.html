@@ -121,7 +121,6 @@ function displayProducts(items) {
         const inmetro = p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : '';
 
         // Só mostra se o campo existir e não for vazio
-        const precoBase = p.price ? `<p>R$ ${p.price}</p>` : '';
         const precoVarejo = p.price_varejo ? `<p>R$ ${p.price_varejo}</p>` : '';
     
         productList.innerHTML += `
