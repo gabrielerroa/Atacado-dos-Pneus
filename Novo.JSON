@@ -39,10 +39,10 @@
       },
       {
         "nome": "80 unidades",
-        "quantidade": 1,
+        "quantidade": 80,
         "desconto": 0,
         "preco_unit": 90,
-        "preco_total": 90
+        "preco_total": 7200
       }
     ]
   }
