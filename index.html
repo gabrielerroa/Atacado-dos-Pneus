@@ -157,14 +157,6 @@ function viewProduct(product) {
     window.open('product.html', '_blank');
 }
 
-// Mostrar loja
-function showStore() {
-    if (products.length === 0) {
-        fetchProducts(() => displayProducts(products));
-    } else {
-        displayProducts(products);
-    }
-}
 </script>
 
 </body>
