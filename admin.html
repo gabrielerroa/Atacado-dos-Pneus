@@ -47,8 +47,7 @@
   <div class="options-container" id="optionsContainer">
     <div>
       <input type="text" placeholder="Nome (ex: unidade)" class="option-name">
-      <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1" oninput="updateTotal(this)">
-      <input type="text" placeholder="Total" class="option-total" readonly>
+      <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1">
       <button class="btn-remove" onclick="removeOption(this)">Remover</button>
     </div>
   </div>
@@ -69,8 +68,7 @@ function addOption() {
   const div = document.createElement("div");
   div.innerHTML = `
     <input type="text" placeholder="Nome (ex: unidade)" class="option-name">
-    <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1" oninput="updateTotal(this)">
-    <input type="text" placeholder="Total" class="option-total" readonly>
+    <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1">
     <button class="btn-remove" onclick="removeOption(this)">Remover</button>
   `;
   container.appendChild(div);
@@ -90,28 +88,19 @@ document.getElementById("imgInput").addEventListener("change", function(e) {
   reader.readAsDataURL(file);
 });
 
-function updateTotal(el) {
-  const container = el.parentElement;
-  const qty = parseInt(container.querySelector(".option-qty").value) || 1;
-  const unitPrice = parseFloat(document.getElementById("unitPrice").value) || 0;
-  const total = qty * unitPrice;
-  container.querySelector(".option-total").value = total.toFixed(2);
-}
-
 function generateJSON() {
   const name = document.getElementById("name").value || "Sem nome";
   const description = document.getElementById("description").value || "Sem descrição";
   const condicao = "Meia vida";
   const img = document.getElementById("previewImage").src || "";
-  const price = parseFloat(document.getElementById("unitPrice").value).toFixed(2); // Preço da 1ª unidade
+  const price = parseFloat(document.getElementById("unitPrice").value).toFixed(2);
 
   const optionsEls = document.querySelectorAll(".options-container div");
   const options = [];
   optionsEls.forEach(el => {
     const nome = el.querySelector(".option-name").value || "unidade";
     const quantidade = parseInt(el.querySelector(".option-qty").value) || 1;
-    const total = parseFloat(el.querySelector(".option-total").value) || 0;
-    options.push({ nome, quantidade, total });
+    options.push({ nome, quantidade });
   });
 
   const json = { name, price, description, condicao, options, img };
