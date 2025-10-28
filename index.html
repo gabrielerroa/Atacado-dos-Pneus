@@ -107,7 +107,6 @@ function fetchProducts(callback) {
     });
 }
 
-// Exibe produtos
 function displayProducts(items) {
     hideLoader();
     productList.style.display = 'flex';
@@ -120,12 +119,17 @@ function displayProducts(items) {
         const tipo = p.tipo ? `<p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p>` : '';
         const condicao = p.condicao ? `<p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p>` : '';
         const inmetro = p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : '';
+
+        // Só mostra se o campo existir e não for vazio
+        const precoBase = p.price ? `<p>Preço base: R$ ${p.price}</p>` : '';
+        const precoVarejo = p.price_varejo ? `<p>Unidade Varejo: R$ ${p.price_varejo}</p>` : '';
+    
         productList.innerHTML += `
         <div class="product">
             <img src="${p.img}" alt="${p.name}">
             <h3>${p.name}</h3>
-            <p>${p.price}</p>
-            <p>${p.price_varejo}</p>
+            ${precoBase}
+            ${precoVarejo}
             ${tipo} ${condicao} ${inmetro}
             <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
         </div>`;
