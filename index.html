@@ -18,13 +18,8 @@ button.search-btn { background:#00a650; }
 button.store-btn { background:#3483fa; }
 button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
 
-/* Intro */
-.intro { padding:30px 15px; text-align:center; }
-.intro h2 { font-size:22px; margin-bottom:15px; }
-.intro p { font-size:16px; color:#555; margin-bottom:10px; }
-
 /* Produtos */
-.products { display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin:15px 0; display:none; }
+.products { display:flex; flex-wrap:wrap; justify-content:center; gap:15px; margin:15px 0; }
 .product { background:#fff; width:calc(25% - 15px); border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); overflow:hidden; display:flex; flex-direction:column; text-align:center; transition:0.2s; }
 .product:hover { transform:translateY(-5px); box-shadow:0 6px 15px rgba(0,0,0,0.2); }
 .product img { width:100%; height:180px; object-fit:cover; }
@@ -60,7 +55,7 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
 <body>
 
 <header>
-    <h1>Atacadão dos Pneus</h1>
+    <h1>Atacadão Pneus</h1>
     <div class="header-right">
         <input type="text" id="search" placeholder="Buscar produtos...">
         <button class="search-btn" onclick="searchProducts()">Pesquisar</button>
@@ -75,7 +70,7 @@ const jsonURLs = [
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/Sport.JSON",
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/PNEU.JSON",
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/produto (1).JSON",
-    "https://gabrielerroa.github.io/Atacado-dos-Pneus/produto.JSON"
+    "https://gabrielerroa.github.io/Atacado-dos-Pneus/produto.JSON",
 ];
 
 let products = [];
@@ -157,6 +152,10 @@ function viewProduct(product) {
     window.open('product.html', '_blank');
 }
 
+// Mostrar loja direto
+window.addEventListener('DOMContentLoaded', () => {
+    fetchProducts(() => displayProducts(products));
+});
 </script>
 
 </body>
