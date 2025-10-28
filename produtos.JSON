@@ -7,28 +7,28 @@
   "options": {
     "varejo": [
       {
-        "nome": "Unidade",
+        "nome": "1 Unidade",
         "quantidade": 1,
         "desconto": 0,
         "preco_unit": 500,
         "preco_total": 500
       },
       {
-        "nome": "Unidades",
+        "nome": " 2 Unidades",
         "quantidade": 2,
         "desconto": 0,
         "preco_unit": 500,
         "preco_total": 1000
       },
       {
-        "nome": "Unidades",
+        "nome": " 4 Unidades",
         "quantidade": 4,
         "desconto": 0,
         "preco_unit": 500,
         "preco_total": 2000
       },
       {
-        "nome": "Unidades",
+        "nome": " 8 Unidades",
         "quantidade": 8,
         "desconto": 0,
         "preco_unit": 500,
