@@ -122,7 +122,7 @@ function displayProducts(items) {
 
         // Só mostra se o campo existir e não for vazio
         const precoVarejo = p.price_varejo ? `<p>R$ ${p.price_varejo}</p>` : '';
-    
+        const precoBase = p.price ? `<p>R$ ${p.price}</p>` : '';
         productList.innerHTML += `
         <div class="product">
             <img src="${p.img}" alt="${p.name}">
