@@ -124,7 +124,8 @@ function displayProducts(items) {
         <div class="product">
             <img src="${p.img}" alt="${p.name}">
             <h3>${p.name}</h3>
-            <p>${p.price,p.price_varejo}</p>
+            <p>${p.price}</p>
+            <p>${p.price_varejo}</p>
             ${tipo} ${condicao} ${inmetro}
             <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
         </div>`;
