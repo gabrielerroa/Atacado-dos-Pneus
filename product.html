@@ -83,14 +83,15 @@ if(product){
     let selectedOption = product.options && product.options.length > 0
         ? product.options[0]
         : { nome: "unidade", quantidade: 1 };
-    let currentPrice = product.price || product.precoVarejo || product.precoAtacado || "—";
     const condicao = product.condicao || "—";
 
     // Atualiza o link do WhatsApp
     function updateWhatsAppLink(){
+        const valorBase = selectedOption.total ? selectedOption.total : product.price;
+        const totalValor = valorBase * selectedOption.quantidade;
         const details = [
             `Produto: ${product.name || "Sem nome"}`,
-            `Preço (${selectedMode}): R$ ${currentPrice}`,
+            `Preço (${selectedMode}): R$ ${Number(totalValor).toFixed(2)}`,
             `Condição: ${condicao}`,
             `Quantidade: ${selectedOption.quantidade} ${selectedOption.nome}`,
             `Modo de compra: ${selectedMode}`
@@ -104,7 +105,7 @@ if(product){
     productContainer.innerHTML = `
         <img src="${product.img || 'https://via.placeholder.com/400x300'}" alt="${product.name || 'Produto'}">
         <h2>${product.name || 'Produto sem nome'}</h2>
-        <p class="info" id="priceText">Preço: R$ ${currentPrice}</p>
+        <p class="info" id="priceText">Preço: R$ ${product.price || "—"}</p>
         <p class="info">Condição: ${condicao}</p>
         ${product.description ? `<p class="info">Descrição: ${product.description}</p>` : ''}
 
@@ -137,22 +138,34 @@ if(product){
         selectedMode = mode;
         varejoBtn.classList.toggle('active', mode === "Varejo");
         atacadoBtn.classList.toggle('active', mode === "Atacado");
+        updatePrice();
     }
 
     varejoBtn.addEventListener('click', ()=> updateMode("Varejo"));
     atacadoBtn.addEventListener('click', ()=> updateMode("Atacado"));
 
-    // Seleção de quantidade
+    // Seleção de quantidade e atualização de preço
     if(product.options && product.options.length > 0){
         const optionButtons = document.querySelectorAll('#optionsContainer .choice-btn');
+
+        function updatePrice(){
+            const valorBase = selectedOption.total ? selectedOption.total : product.price;
+            const totalValor = valorBase * selectedOption.quantidade;
+            priceText.textContent = "Preço: R$ " + Number(totalValor).toFixed(2);
+        }
+
         optionButtons.forEach(btn=>{
             btn.addEventListener('click', ()=>{
                 optionButtons.forEach(b=>b.classList.remove('active'));
                 btn.classList.add('active');
                 const idx = btn.getAttribute('data-index');
                 selectedOption = product.options[idx];
+                updatePrice();
             });
         });
+
+        // Atualiza preço inicial
+        updatePrice();
     }
 
     // Ação do botão WhatsApp
