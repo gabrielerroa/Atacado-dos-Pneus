@@ -11,12 +11,8 @@
   label { display: block; margin-top: 10px; font-weight: bold; }
   input, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; }
   textarea { resize: vertical; }
-  .options-container { margin-top: 10px; }
-  .options-container div { display: flex; gap: 10px; margin-bottom: 5px; align-items: center; }
-  button { background-color: #FFD700; border: none; padding: 10px 16px; color: #000; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+  button { background-color: #FFD700; border: none; padding: 10px 16px; color: #000; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
   button:hover { background-color: #ffbf00; transform: scale(1.05); }
-  .btn-remove { background-color: #222; color: #fff; }
-  .btn-remove:hover { background-color: #444; }
   .preview { margin-top: 20px; text-align: center; }
   .preview img { max-width: 100%; height: auto; border-radius: 8px; border: 1px solid #ccc; }
   pre { background: #222; color: #00ff6a; padding: 15px; border-radius: 10px; margin-top: 15px; overflow-x: auto; }
@@ -31,7 +27,10 @@
   <input type="text" id="name">
 
   <label>Preço por Unidade:</label>
-  <input type="number" id="unitPrice" value="0" min="0">
+  <input type="number" id="unitPrice" value="0" min="0" step="0.01">
+
+  <label>Desconto do Atacado (%):</label>
+  <input type="number" id="discount" value="10" min="0" max="100" step="1">
 
   <label>Descrição:</label>
   <textarea id="description"></textarea>
@@ -43,16 +42,6 @@
     <img id="previewImage" src="" alt="Pré-visualização">
   </div>
 
-  <label>Opções de Quantidade:</label>
-  <div class="options-container" id="optionsContainer">
-    <div>
-      <input type="text" placeholder="Nome (ex: unidade)" class="option-name">
-      <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1">
-      <button class="btn-remove" onclick="removeOption(this)">Remover</button>
-    </div>
-  </div>
-  <button onclick="addOption()">Adicionar Opção</button>
-
   <hr>
 
   <button onclick="generateJSON()">Gerar JSON</button>
@@ -63,21 +52,6 @@
 </div>
 
 <script>
-function addOption() {
-  const container = document.getElementById("optionsContainer");
-  const div = document.createElement("div");
-  div.innerHTML = `
-    <input type="text" placeholder="Nome (ex: unidade)" class="option-name">
-    <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1">
-    <button class="btn-remove" onclick="removeOption(this)">Remover</button>
-  `;
-  container.appendChild(div);
-}
-
-function removeOption(btn) {
-  btn.parentElement.remove();
-}
-
 document.getElementById("imgInput").addEventListener("change", function(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -93,17 +67,31 @@ function generateJSON() {
   const description = document.getElementById("description").value || "Sem descrição";
   const condicao = "Meia vida";
   const img = document.getElementById("previewImage").src || "";
-  const price = parseFloat(document.getElementById("unitPrice").value).toFixed(2);
+  const price = parseFloat(document.getElementById("unitPrice").value) || 0;
+  const discount = parseFloat(document.getElementById("discount").value) || 0;
 
-  const optionsEls = document.querySelectorAll(".options-container div");
-  const options = [];
-  optionsEls.forEach(el => {
-    const nome = el.querySelector(".option-name").value || "unidade";
-    const quantidade = parseInt(el.querySelector(".option-qty").value) || 1;
-    options.push({ nome, quantidade });
-  });
+  // Calcula preços
+  const precoVarejo = price;
+  const precoAtacado = price * (1 - discount / 100);
 
-  const json = { name, price, description, condicao, options, img };
+  const json = {
+    name,
+    price: precoVarejo.toFixed(2),
+    description,
+    condicao,
+    img,
+    options: {
+      varejo: [
+        { nome: "1 unidade", quantidade: 1, preco_unit: precoVarejo, preco_total: precoVarejo },
+        { nome: "4 unidades", quantidade: 4, preco_unit: precoVarejo, preco_total: precoVarejo * 4 }
+      ],
+      atacado: [
+        { nome: "10 unidades", quantidade: 10, preco_unit: precoAtacado, preco_total: precoAtacado * 10 },
+        { nome: "20 unidades", quantidade: 20, preco_unit: precoAtacado, preco_total: precoAtacado * 20 }
+      ]
+    }
+  };
+
   document.getElementById("output").textContent = JSON.stringify(json, null, 2);
 }
 
