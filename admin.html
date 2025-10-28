@@ -10,10 +10,10 @@
   h2 { margin-top: 30px; color: #333; }
   .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
   label { display: block; margin-top: 10px; font-weight: bold; }
-  input, textarea, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; }
+  input, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; }
   textarea { resize: vertical; }
   .options-container { margin-top: 10px; }
-  .options-container div { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; margin-bottom: 8px; align-items: center; }
+  .options-container div { display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; margin-bottom: 8px; align-items: center; }
   button { background-color: #FFD700; border: none; padding: 10px 16px; color: #000; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
   button:hover { background-color: #ffbf00; transform: scale(1.05); }
   .btn-remove { background-color: #222; color: #fff; }
@@ -50,11 +50,13 @@
     <div>
       <input type="text" placeholder="Nome (ex: 1 unidade)" class="option-name">
       <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1">
-      <input type="number" value="0" disabled>
       <button class="btn-remove" onclick="removeOption(this)">Remover</button>
     </div>
   </div>
   <button onclick="addOption('optionsVarejo')">Adicionar Varejo</button>
+
+  <label>Desconto padrão do Varejo (%):</label>
+  <input type="number" id="discountVarejo" value="0" min="0" max="100" step="1">
 
   <!-- SEÇÃO ATACADO -->
   <h2>📦 Opções de Atacado</h2>
@@ -62,11 +64,13 @@
     <div>
       <input type="text" placeholder="Nome (ex: 10 unidades)" class="option-name">
       <input type="number" placeholder="Quantidade" class="option-qty" value="10" min="1">
-      <input type="number" placeholder="Desconto %" class="option-discount" value="10" min="0" max="100" step="1">
       <button class="btn-remove" onclick="removeOption(this)">Remover</button>
     </div>
   </div>
   <button onclick="addOption('optionsAtacado')">Adicionar Atacado</button>
+
+  <label>Desconto padrão do Atacado (%):</label>
+  <input type="number" id="discountAtacado" value="10" min="0" max="100" step="1">
 
   <hr>
 
@@ -82,22 +86,11 @@ function addOption(sectionId) {
   const container = document.getElementById(sectionId);
   const div = document.createElement("div");
 
-  if (sectionId === "optionsVarejo") {
-    div.innerHTML = `
-      <input type="text" placeholder="Nome (ex: 4 unidades)" class="option-name">
-      <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1">
-      <input type="number" value="0" disabled>
-      <button class="btn-remove" onclick="removeOption(this)">Remover</button>
-    `;
-  } else {
-    div.innerHTML = `
-      <input type="text" placeholder="Nome (ex: 20 unidades)" class="option-name">
-      <input type="number" placeholder="Quantidade" class="option-qty" value="10" min="1">
-      <input type="number" placeholder="Desconto %" class="option-discount" value="10" min="0" max="100" step="1">
-      <button class="btn-remove" onclick="removeOption(this)">Remover</button>
-    `;
-  }
-
+  div.innerHTML = `
+    <input type="text" placeholder="Nome (ex: 4 unidades)" class="option-name">
+    <input type="number" placeholder="Quantidade" class="option-qty" value="1" min="1">
+    <button class="btn-remove" onclick="removeOption(this)">Remover</button>
+  `;
   container.appendChild(div);
 }
 
@@ -122,16 +115,20 @@ function generateJSON() {
   const img = document.getElementById("previewImage").src || "";
   const price = parseFloat(document.getElementById("unitPrice").value) || 0;
 
+  const discountVarejo = parseFloat(document.getElementById("discountVarejo").value) || 0;
+  const discountAtacado = parseFloat(document.getElementById("discountAtacado").value) || 0;
+
   // VAREJO
   const varejo = [];
   document.querySelectorAll("#optionsVarejo div").forEach(el => {
     const nome = el.querySelector(".option-name").value || "unidade";
     const quantidade = parseInt(el.querySelector(".option-qty").value) || 1;
-    const preco_unit = price;
+    const preco_unit = price * (1 - discountVarejo / 100);
     const preco_total = preco_unit * quantidade;
     varejo.push({
       nome,
       quantidade,
+      desconto: discountVarejo,
       preco_unit: +preco_unit.toFixed(2),
       preco_total: +preco_total.toFixed(2)
     });
@@ -142,13 +139,12 @@ function generateJSON() {
   document.querySelectorAll("#optionsAtacado div").forEach(el => {
     const nome = el.querySelector(".option-name").value || "atacado";
     const quantidade = parseInt(el.querySelector(".option-qty").value) || 1;
-    const desconto = parseFloat(el.querySelector(".option-discount").value) || 0;
-    const preco_unit = price * (1 - desconto / 100);
+    const preco_unit = price * (1 - discountAtacado / 100);
     const preco_total = preco_unit * quantidade;
     atacado.push({
       nome,
       quantidade,
-      desconto: desconto,
+      desconto: discountAtacado,
       preco_unit: +preco_unit.toFixed(2),
       preco_total: +preco_total.toFixed(2)
     });
