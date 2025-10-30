@@ -116,7 +116,7 @@ function displayProducts(items) {
         return;
     }
     items.forEach(p => {
-        const tipo = p.tipo ? `<p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p>` : '';
+        const Tipo = p.Tipo ? `<p>${p.Tipo.charAt(0).toUpperCase() + p.Tipo.slice(1)}</p>` : '';
         const condicao = p.condicao ? `<p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p>` : '';
         const inmetro = p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : '';
 
