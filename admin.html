@@ -10,7 +10,7 @@
   h2 { margin-top: 30px; color: #333; }
   .container { max-width: 700px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
   label { display: block; margin-top: 10px; font-weight: bold; }
-  input, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; }
+  input, textarea, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; }
   textarea { resize: vertical; }
   .options-container { margin-top: 10px; }
   .options-container div { display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; margin-bottom: 8px; align-items: center; }
@@ -30,6 +30,13 @@
 <div class="container">
   <label>Nome do Produto:</label>
   <input type="text" id="name">
+
+  <!-- NOVO CAMPO -->
+  <label>Tipo do Produto:</label>
+  <select id="tipo">
+    <option value="varejo">Varejo</option>
+    <option value="atacado">Atacado</option>
+  </select>
 
   <label>Preço por Unidade (Varejo - R$):</label>
   <input type="number" id="priceVarejo" value="0" min="0" step="0.01">
@@ -117,11 +124,11 @@ function generateJSON() {
   const img = document.getElementById("previewImage").src || "";
   const priceVarejo = parseFloat(document.getElementById("priceVarejo").value) || 0;
   const priceAtacado = parseFloat(document.getElementById("priceAtacado").value) || 0;
+  const tipo = document.getElementById("tipo").value; // Novo campo
 
   const discountVarejo = parseFloat(document.getElementById("discountVarejo").value) || 0;
   const discountAtacado = parseFloat(document.getElementById("discountAtacado").value) || 0;
 
-  // VAREJO
   const varejo = [];
   document.querySelectorAll("#optionsVarejo div").forEach(el => {
     const nome = el.querySelector(".option-name").value || "unidade";
@@ -137,7 +144,6 @@ function generateJSON() {
     });
   });
 
-  // ATACADO
   const atacado = [];
   document.querySelectorAll("#optionsAtacado div").forEach(el => {
     const nome = el.querySelector(".option-name").value || "atacado";
@@ -155,6 +161,7 @@ function generateJSON() {
 
   const json = {
     name,
+    tipo, // Aqui adiciona ao JSON
     price_varejo: priceVarejo.toFixed(2),
     price_atacado: priceAtacado.toFixed(2),
     description,
