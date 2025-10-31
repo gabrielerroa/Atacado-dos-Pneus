@@ -11,8 +11,10 @@ body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; }
 /* Header */
 header { background:#ffd700; padding:10px 15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:100; }
 header h1 { margin:0; font-size:20px; color:#333; }
-.header-right { display:flex; gap:10px; flex-wrap:wrap; align-items:center; width:100%; max-width:600px; }
-.header-right input[type="text"] { padding:8px; font-size:14px; border-radius:5px; border:1px solid #ccc; flex:1; min-width:120px; }
+.header-right { display:flex; gap:10px; flex-wrap:wrap; align-items:center; width:100%; max-width:700px; }
+.header-right input[type="text"], .header-right select {
+  padding:8px; font-size:14px; border-radius:5px; border:1px solid #ccc; flex:1; min-width:120px;
+}
 .header-right button { padding:8px 12px; font-size:14px; border:none; border-radius:5px; cursor:pointer; color:#fff; transition:0.2s; flex-shrink:0; }
 button.search-btn { background:#00a650; }
 button.store-btn { background:#3483fa; }
@@ -29,6 +31,20 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
 .product button:hover { background:#e6b800; }
 .inmetro { margin-top:5px; color:#007700; font-weight:bold; font-size:12px; }
 
+/* Tipo */
+.tipo {
+    color: #fff;
+    background: #00a650;
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+.tipo.varejo { background: #007bff; } /* azul */
+.tipo.atacado { background: #00a650; } /* verde */
+
 /* Spinner */
 @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
 .spinner {
@@ -40,14 +56,14 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
     animation:spin 1s linear infinite;
 }
 
-/* Responsividade tipo Mercado Livre */
+/* Responsividade */
 @media screen and (max-width:1024px) { .product { width:calc(33.33% - 15px); } }
 @media screen and (max-width:768px)  { .product { width:calc(50% - 15px); } }
 @media screen and (max-width:480px) {
     .product { width:calc(50% - 10px); }
     header { justify-content:center; }
     .header-right { flex-direction:column; gap:8px; width:100%; align-items: stretch; }
-    .header-right input[type="text"] { width:100%; }
+    .header-right input[type="text"], .header-right select { width:100%; }
     .header-right button { width:48%; align-self:center; }
 }
 </style>
@@ -58,6 +74,11 @@ button.search-btn:hover, button.store-btn:hover { opacity:0.9; }
     <h1>Atacadão dos Pneus</h1>
     <div class="header-right">
         <input type="text" id="search" placeholder="Buscar produtos...">
+        <select id="filterTipo">
+            <option value="">Todos</option>
+            <option value="atacado">Atacado</option>
+            <option value="varejo">Varejo</option>
+        </select>
         <button class="search-btn" onclick="searchProducts()">Pesquisar</button>
     </div>
 </header>
@@ -71,19 +92,17 @@ const jsonURLs = [
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/PNEU.JSON",
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/produto (1).JSON",
     "https://gabrielerroa.github.io/Atacado-dos-Pneus/produto.JSON",
-       "https://gabrielerroa.github.io/Atacado-dos-Pneus/Novo.JSON"
+    "https://gabrielerroa.github.io/Atacado-dos-Pneus/Novo.JSON"
 ];
 
 let products = [];
 const productList = document.getElementById('productList');
 
-// Loader (efeito de carregamento)
 const loader = document.createElement("div");
 loader.style = "display:flex;justify-content:center;align-items:center;width:100%;height:200px;";
 loader.innerHTML = `<div class="spinner"></div>`;
 
 function showLoader() {
-    productList.style.display = 'flex';
     productList.innerHTML = '';
     productList.appendChild(loader);
 }
@@ -92,13 +111,12 @@ function hideLoader() {
     if (productList.contains(loader)) productList.removeChild(loader);
 }
 
-// Busca os produtos dos JSONs
 function fetchProducts(callback) {
     showLoader();
-    const fetches = jsonURLs.map(url => 
+    const fetches = jsonURLs.map(url =>
         fetch(url)
-        .then(res => res.json())
-        .catch(err => { console.error("Erro ao carregar:", url, err); return []; })
+            .then(res => res.json())
+            .catch(err => { console.error("Erro ao carregar:", url, err); return []; })
     );
     Promise.all(fetches).then(results => {
         products = results.flat();
@@ -109,33 +127,32 @@ function fetchProducts(callback) {
 
 function displayProducts(items) {
     hideLoader();
-    productList.style.display = 'flex';
     productList.innerHTML = '';
-    if(items.length === 0){
+    if (items.length === 0) {
         productList.innerHTML = "<p style='width:100%; text-align:center; color:#555;'>Nenhum produto encontrado.</p>";
         return;
     }
+
     items.forEach(p => {
-        const Tipo = p.tipo ? `<p>${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</p>` : '';
+        const tipoClass = p.tipo ? p.tipo.toLowerCase() : '';
+        const tipo = p.tipo ? `<div class="tipo ${tipoClass}">${p.tipo.charAt(0).toUpperCase() + p.tipo.slice(1)}</div>` : '';
         const condicao = p.condicao ? `<p>${p.condicao.charAt(0).toUpperCase() + p.condicao.slice(1)}</p>` : '';
         const inmetro = p.inmetro ? '<div class="inmetro">Selo Inmetro</div>' : '';
+        const preco = p.price_varejo ? `<p>R$ ${p.price_varejo}</p>` : p.price ? `<p>R$ ${p.price}</p>` : '';
 
-        // Só mostra se o campo existir e não for vazio
-        const precoVarejo = p.price_varejo ? `<p>R$ ${p.price_varejo}</p>` : '';
-        const precoBase = p.price ? `<p>R$ ${p.price}</p>` : '';
         productList.innerHTML += `
         <div class="product">
             <img src="${p.img}" alt="${p.name}">
             <h3>${p.name}</h3>
-            ${precoBase}
-            ${precoVarejo}
-            ${tipo} ${condicao} ${inmetro}
+            ${tipo}
+            ${preco}
+            ${condicao}
+            ${inmetro}
             <button onclick='viewProduct(${JSON.stringify(p)})'>Comprar</button>
         </div>`;
     });
 }
 
-// Pesquisa produtos
 function searchProducts() {
     if (products.length === 0) {
         fetchProducts(() => applySearch());
@@ -144,20 +161,22 @@ function searchProducts() {
     }
 }
 
-// Filtra apenas pela busca
 function applySearch() {
     const query = document.getElementById('search').value.toLowerCase();
-    const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+    const filterTipo = document.getElementById('filterTipo').value;
+    const filtered = products.filter(p => {
+        const nomeMatch = p.name.toLowerCase().includes(query);
+        const tipoMatch = filterTipo ? (p.tipo && p.tipo.toLowerCase() === filterTipo) : true;
+        return nomeMatch && tipoMatch;
+    });
     displayProducts(filtered);
 }
 
-// Ver produto
 function viewProduct(product) {
     localStorage.setItem('selectedProduct', JSON.stringify(product));
     window.open('product.html', '_blank');
 }
 
-// Mostrar loja direto
 window.addEventListener('DOMContentLoaded', () => {
     fetchProducts(() => displayProducts(products));
 });
